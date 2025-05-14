@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MesaCard, { Mesa } from '@/components/MesaCard';
+import TableMap from '@/components/TableMap';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -259,35 +259,34 @@ const Reservar = () => {
             <div>
               <h2 className="text-2xl font-semibold mb-6">Selecciona tu mesa</h2>
               
-              <Tabs defaultValue="todas">
-                <TabsList className="grid grid-cols-6 mb-6">
-                  <TabsTrigger value="todas">Todas</TabsTrigger>
-                  <TabsTrigger value="gold" className="mesa-gold">Gold</TabsTrigger>
-                  <TabsTrigger value="silver" className="mesa-silver">Silver</TabsTrigger>
-                  <TabsTrigger value="bronze" className="mesa-bronze">Bronze</TabsTrigger>
-                  <TabsTrigger value="purple" className="mesa-purple">Purple</TabsTrigger>
-                  <TabsTrigger value="red" className="mesa-red">Red</TabsTrigger>
+              <Tabs defaultValue="mapa">
+                <TabsList className="grid grid-cols-2 mb-6">
+                  <TabsTrigger value="mapa">Mapa de Mesas</TabsTrigger>
+                  <TabsTrigger value="lista">Lista de Mesas</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="todas">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {mesas.map(mesa => (
-                      <MesaCard 
-                        key={mesa.id}
-                        mesa={mesa}
-                        onSelect={handleMesaSelect}
-                        selected={mesaSeleccionada?.id === mesa.id}
-                      />
-                    ))}
-                  </div>
+                <TabsContent value="mapa">
+                  <TableMap 
+                    mesas={mesas}
+                    selectedMesa={mesaSeleccionada}
+                    onSelectMesa={handleMesaSelect}
+                  />
                 </TabsContent>
                 
-                {["gold", "silver", "bronze", "purple", "red"].map(categoria => (
-                  <TabsContent key={categoria} value={categoria}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {mesas
-                        .filter(mesa => mesa.categoria === categoria)
-                        .map(mesa => (
+                <TabsContent value="lista">
+                  <Tabs defaultValue="todas">
+                    <TabsList className="grid grid-cols-6 mb-6">
+                      <TabsTrigger value="todas">Todas</TabsTrigger>
+                      <TabsTrigger value="gold" className="mesa-gold">Gold</TabsTrigger>
+                      <TabsTrigger value="silver" className="mesa-silver">Silver</TabsTrigger>
+                      <TabsTrigger value="bronze" className="mesa-bronze">Bronze</TabsTrigger>
+                      <TabsTrigger value="purple" className="mesa-purple">Purple</TabsTrigger>
+                      <TabsTrigger value="red" className="mesa-red">Red</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="todas">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {mesas.map(mesa => (
                           <MesaCard 
                             key={mesa.id}
                             mesa={mesa}
@@ -295,9 +294,27 @@ const Reservar = () => {
                             selected={mesaSeleccionada?.id === mesa.id}
                           />
                         ))}
-                    </div>
-                  </TabsContent>
-                ))}
+                      </div>
+                    </TabsContent>
+                    
+                    {["gold", "silver", "bronze", "purple", "red"].map(categoria => (
+                      <TabsContent key={categoria} value={categoria}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {mesas
+                            .filter(mesa => mesa.categoria === categoria)
+                            .map(mesa => (
+                              <MesaCard 
+                                key={mesa.id}
+                                mesa={mesa}
+                                onSelect={handleMesaSelect}
+                                selected={mesaSeleccionada?.id === mesa.id}
+                              />
+                            ))}
+                        </div>
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                </TabsContent>
               </Tabs>
             </div>
           )}
