@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LayoutDashboard, Table, Users, FileImport } from "lucide-react";
+import { LayoutDashboard, Table, Users, Package } from "lucide-react";
 import TableManagement from "@/components/admin/TableManagement";
 
 const Admin = () => {
@@ -25,7 +25,7 @@ const Admin = () => {
               <span className="hidden sm:inline">Usuarios</span>
             </TabsTrigger>
             <TabsTrigger value="products" className="flex items-center gap-2">
-              <FileImport className="w-4 h-4" />
+              <Package className="w-4 h-4" />
               <span className="hidden sm:inline">Productos</span>
             </TabsTrigger>
           </TabsList>

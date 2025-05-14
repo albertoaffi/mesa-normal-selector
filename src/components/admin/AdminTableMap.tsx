@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import { toast } from "@/hooks/use-toast";
 
+// Updated to match the type in TableManagement.tsx
 interface Table {
   id: number;
   nombre: string;

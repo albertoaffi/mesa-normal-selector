@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,20 +7,34 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "@/hooks/use-toast";
 import AdminTableMap from './AdminTableMap';
 
+// Define the Table interface to ensure type safety
+interface TableData {
+  id: number;
+  nombre: string;
+  categoria: 'gold' | 'silver' | 'bronze' | 'purple' | 'red';
+  capacidad: number;
+  ubicacion: string;
+  precioMinimo: number;
+  disponible: boolean;
+  descripcion: string;
+  x?: number;
+  y?: number;
+}
+
 // Initial sample tables
-const initialTables = [
+const initialTables: TableData[] = [
   { id: 1, nombre: "Mesa Gold 1", categoria: "gold", capacidad: 8, ubicacion: "VIP", precioMinimo: 5000, disponible: true, descripcion: "Mesa VIP con vista privilegiada" },
   { id: 2, nombre: "Mesa Silver 1", categoria: "silver", capacidad: 6, ubicacion: "Área Silver", precioMinimo: 3000, disponible: true, descripcion: "Mesa con buena ubicación" },
   { id: 3, nombre: "Mesa Bronze 1", categoria: "bronze", capacidad: 4, ubicacion: "Área Bronze", precioMinimo: 2000, disponible: true, descripcion: "Mesa estándar" },
 ];
 
 const TableManagement = () => {
-  const [tables, setTables] = useState(initialTables);
+  const [tables, setTables] = useState<TableData[]>(initialTables);
   const [editMode, setEditMode] = useState(false);
-  const [currentTable, setCurrentTable] = useState(null);
+  const [currentTable, setCurrentTable] = useState<TableData | null>(null);
   const [backgroundImage, setBackgroundImage] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<TableData>({
     id: 0,
     nombre: "",
     categoria: "gold",
@@ -32,15 +45,17 @@ const TableManagement = () => {
     descripcion: ""
   });
   
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+    
     setFormData({
       ...formData,
       [name]: type === "checkbox" ? checked : type === "number" ? Number(value) : value
     });
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (editMode && currentTable) {
@@ -78,14 +93,14 @@ const TableManagement = () => {
     });
   };
   
-  const handleEditTable = (table) => {
+  const handleEditTable = (table: TableData) => {
     setEditMode(true);
     setCurrentTable(table);
     setFormData(table);
     setShowForm(true);
   };
   
-  const handleDeleteTable = (id) => {
+  const handleDeleteTable = (id: number) => {
     if (confirm("¿Estás seguro de que deseas eliminar esta mesa?")) {
       setTables(tables.filter(table => table.id !== id));
       toast({
@@ -96,16 +111,19 @@ const TableManagement = () => {
     }
   };
   
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setBackgroundImage(reader.result);
-        toast({
-          title: "Imagen cargada",
-          description: "La imagen de fondo ha sido actualizada."
-        });
+        const result = reader.result;
+        if (typeof result === 'string') {
+          setBackgroundImage(result);
+          toast({
+            title: "Imagen cargada",
+            description: "La imagen de fondo ha sido actualizada."
+          });
+        }
       };
       reader.readAsDataURL(file);
     }
