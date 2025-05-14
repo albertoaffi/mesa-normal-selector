@@ -3,6 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LayoutDashboard, Table, Users, Package } from "lucide-react";
 import TableManagement from "@/components/admin/TableManagement";
+import Dashboard from "@/components/admin/Dashboard";
 
 const Admin = () => {
   return (
@@ -10,7 +11,7 @@ const Admin = () => {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8 text-center">Panel de Administración</h1>
         
-        <Tabs defaultValue="tables" className="w-full">
+        <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <LayoutDashboard className="w-4 h-4" />
@@ -31,12 +32,7 @@ const Admin = () => {
           </TabsList>
           
           <TabsContent value="dashboard">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">Dashboard</h2>
-              <p className="text-gray-600 dark:text-gray-300">
-                Bienvenido al panel de administración. Usa las pestañas para gestionar las diferentes secciones.
-              </p>
-            </div>
+            <Dashboard />
           </TabsContent>
           
           <TabsContent value="tables">
