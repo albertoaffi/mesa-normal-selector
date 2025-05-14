@@ -9,6 +9,7 @@ import Reservar from "./pages/Reservar";
 import Confirmacion from "./pages/Confirmacion";
 import Contacto from "./pages/Contacto";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/reservar" element={<Reservar />} />
           <Route path="/confirmacion" element={<Confirmacion />} />
           <Route path="/contacto" element={<Contacto />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
