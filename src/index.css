@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,19 +36,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -96,6 +90,37 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-black text-gray-200;
+    background-image: linear-gradient(to right, #000000, #1A1A1A);
   }
+}
+
+@font-face {
+  font-family: 'NightClub';
+  src: url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
+}
+
+.mesa-gold {
+  background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7);
+  color: #000;
+}
+
+.mesa-silver {
+  background: linear-gradient(to right, #8E8E8E, #C0C0C0, #FFFFFF);
+  color: #000;
+}
+
+.mesa-bronze {
+  background: linear-gradient(to right, #8C7853, #CD7F32, #A97142);
+  color: #000;
+}
+
+.mesa-purple {
+  background: linear-gradient(to right, #4B0082, #9932CC, #8A2BE2);
+  color: #fff;
+}
+
+.mesa-red {
+  background: linear-gradient(to right, #8B0000, #FF2400, #DC143C);
+  color: #fff;
 }
