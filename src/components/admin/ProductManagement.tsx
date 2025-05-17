@@ -1,418 +1,300 @@
 
 import React, { useState } from 'react';
 import { 
-  Table, 
-  TableHeader, 
-  TableBody, 
-  TableHead, 
-  TableRow, 
-  TableCell 
+  Table, TableHeader, TableRow, TableHead, TableBody, TableCell
 } from "@/components/ui/table";
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
-  CardContent 
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter,
-  DialogTrigger 
-} from "@/components/ui/dialog";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Search, Plus, Pencil, Trash2, X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { Producto } from "@/components/ProductCard";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Plus, Pencil, Trash2 } from "lucide-react";
 
-// Schema de validación para productos
-const productSchema = z.object({
-  nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  precio: z.coerce.number().min(0.01, "El precio debe ser mayor a 0"),
-  categoria: z.string().min(1, "Selecciona una categoría"),
-  descripcion: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
-  imagen: z.string().url("Ingresa una URL de imagen válida").or(z.string().min(1, "La imagen es requerida")),
-});
+// Importar el tipo Producto de ProductCard
+import { Producto } from '@/components/ProductCard';
 
-type ProductFormValues = z.infer<typeof productSchema>;
-
-// Datos de ejemplo
+// Datos de ejemplo para productos
 const productosIniciales: Producto[] = [
   {
     id: 1,
-    nombre: "Martini Clásico",
-    precio: 12.99,
-    categoria: "Cócteles",
-    imagen: "https://images.unsplash.com/photo-1609951651556-5334e2706168?q=80&w=1974&auto=format&fit=crop",
-    descripcion: "Ginebra y vermut seco, guarnecido con una aceituna o twist de limón."
+    nombre: "Botella Premium Vodka",
+    precio: 1800,
+    categoria: "Botellas",
+    imagen: "https://images.unsplash.com/photo-1613521298048-5252e6ae5485?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+    descripcion: "Botella premium de vodka con mezcladores incluidos."
   },
   {
     id: 2,
-    nombre: "Botella de Whisky Premium",
-    precio: 89.99,
+    nombre: "Botella Whisky",
+    precio: 2200,
     categoria: "Botellas",
-    imagen: "https://images.unsplash.com/photo-1527281400683-1aae777175f8?q=80&w=1974&auto=format&fit=crop",
-    descripcion: "Whisky premium añejado durante 12 años en barricas de roble."
+    imagen: "https://images.unsplash.com/photo-1527281400683-1aae777175f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+    descripcion: "Botella de whisky añejado con hielo y mezcladores."
   },
   {
     id: 3,
-    nombre: "Tabla de Quesos",
-    precio: 24.50,
-    categoria: "Alimentos",
-    imagen: "https://images.unsplash.com/photo-1543362906-acfc16c67564?q=80&w=1965&auto=format&fit=crop",
-    descripcion: "Selección de quesos gourmet acompañados de frutas y crackers."
+    nombre: "Botella Tequila",
+    precio: 1500,
+    categoria: "Botellas",
+    imagen: "https://images.unsplash.com/photo-1550985105-80f5d89d8912?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+    descripcion: "Tequila premium con limones, sal y mezcladores."
   },
   {
     id: 4,
-    nombre: "Mojito Cubano",
-    precio: 10.99,
-    categoria: "Cócteles",
-    imagen: "https://images.unsplash.com/photo-1546171753-97d7676e4602?q=80&w=1974&auto=format&fit=crop",
-    descripcion: "Ron blanco, menta fresca, azúcar, lima y soda."
+    nombre: "Bucket Cervezas",
+    precio: 600,
+    categoria: "Cervezas",
+    imagen: "https://images.unsplash.com/photo-1546636889-ba9fdd63583e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+    descripcion: "6 cervezas premium heladas en cubeta con hielo."
   },
   {
     id: 5,
-    nombre: "Botella de Champagne",
-    precio: 75.00,
-    categoria: "Botellas",
-    imagen: "https://images.unsplash.com/photo-1584225064785-c62a8b43d148?q=80&w=1974&auto=format&fit=crop",
-    descripcion: "Champagne francés premium, perfecto para celebraciones especiales."
+    nombre: "Tabla de Botanas",
+    precio: 450,
+    categoria: "Alimentos",
+    imagen: "https://images.unsplash.com/photo-1626200419199-391ae4be7a41?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+    descripcion: "Selección de botanas premium para acompañar bebidas."
+  },
+  {
+    id: 6,
+    nombre: "Set de Coctelería",
+    precio: 800,
+    categoria: "Cocteles",
+    imagen: "https://images.unsplash.com/photo-1557345104-66e27c12f660?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+    descripcion: "4 cocteles de la casa preparados por nuestros bartenders."
   }
 ];
 
-// Categorías disponibles
-const categorias = ["Cócteles", "Botellas", "Alimentos", "Sin Alcohol", "Promociones"];
+// Categorías disponibles para los productos
+const categorias = ["Botellas", "Cervezas", "Cocteles", "Alimentos"];
 
-const ProductManagement: React.FC = () => {
-  const { toast } = useToast();
+const ProductManagement = () => {
   const [productos, setProductos] = useState<Producto[]>(productosIniciales);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editingProduct, setEditingProduct] = useState<Producto | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const form = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema),
-    defaultValues: {
-      nombre: "",
-      precio: 0,
-      categoria: "",
-      descripcion: "",
-      imagen: "",
-    },
+  const [currentProduct, setCurrentProduct] = useState<Producto | null>(null);
+  const [formData, setFormData] = useState<Producto>({
+    id: 0,
+    nombre: "",
+    precio: 0,
+    categoria: "Botellas",
+    descripcion: "",
+    imagen: ""
   });
 
-  const onSubmit = (data: ProductFormValues) => {
-    if (editingProduct) {
-      // Actualizar producto existente
-      const updatedProductos = productos.map(p => 
-        p.id === editingProduct.id ? { ...data, id: p.id } : p
-      );
-      setProductos(updatedProductos);
-      toast({
-        title: "Producto actualizado",
-        description: `${data.nombre} ha sido actualizado correctamente.`,
-      });
-    } else {
-      // Crear nuevo producto
-      const newProduct = {
-        ...data,
-        id: Math.max(0, ...productos.map(p => p.id)) + 1,
-      };
-      setProductos([...productos, newProduct]);
-      toast({
-        title: "Producto creado",
-        description: `${data.nombre} ha sido añadido correctamente.`,
-      });
-    }
-    setIsDialogOpen(false);
-    form.reset();
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: name === 'precio' ? Number(value) : value
+    });
+  };
+
+  const handleSelectChange = (value: string) => {
+    setFormData({ ...formData, categoria: value });
+  };
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setFormData({ ...formData, descripcion: e.target.value });
+  };
+
+  const openAddDialog = () => {
+    setCurrentProduct(null);
+    setFormData({
+      id: Date.now(),
+      nombre: "",
+      precio: 0,
+      categoria: "Botellas",
+      descripcion: "",
+      imagen: "https://images.unsplash.com/photo-1613521298048-5252e6ae5485?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+    });
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (producto: Producto) => {
+    setCurrentProduct(producto);
+    setFormData({ ...producto });
+    setIsDialogOpen(true);
   };
 
   const handleDelete = (id: number) => {
-    setProductos(productos.filter(p => p.id !== id));
-    toast({
-      title: "Producto eliminado",
-      description: "El producto ha sido eliminado correctamente.",
-      variant: "destructive",
-    });
+    setProductos(productos.filter(producto => producto.id !== id));
   };
 
-  const handleEdit = (producto: Producto) => {
-    setEditingProduct(producto);
-    form.reset({
-      nombre: producto.nombre,
-      precio: producto.precio,
-      categoria: producto.categoria,
-      descripcion: producto.descripcion,
-      imagen: producto.imagen,
-    });
-    setIsDialogOpen(true);
+  const handleSubmit = () => {
+    if (currentProduct) {
+      // Editar producto existente
+      setProductos(productos.map(p => p.id === currentProduct.id ? formData : p));
+    } else {
+      // Añadir nuevo producto
+      setProductos([...productos, formData]);
+    }
+    setIsDialogOpen(false);
   };
 
-  const handleNewProduct = () => {
-    setEditingProduct(null);
-    form.reset({
-      nombre: "",
-      precio: 0,
-      categoria: "",
-      descripcion: "",
-      imagen: "",
-    });
-    setIsDialogOpen(true);
-  };
-
-  const filteredProducts = searchTerm 
-    ? productos.filter(p => 
-        p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        p.categoria.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : productos;
+  const filteredProducts = productos.filter(producto =>
+    producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    producto.categoria.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Gestión de Productos</CardTitle>
-          <CardDescription>
-            Administra el catálogo de productos del club.
-          </CardDescription>
+          <Button onClick={openAddDialog} className="flex items-center gap-1">
+            <Plus className="w-4 h-4" />
+            Añadir Producto
+          </Button>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-4 mb-6">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar productos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-              {searchTerm && (
-                <button 
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={handleNewProduct} className="flex gap-1.5">
-                  <Plus className="h-4 w-4" />
-                  Nuevo Producto
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[550px]">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingProduct ? "Editar Producto" : "Añadir Nuevo Producto"}
-                  </DialogTitle>
-                </DialogHeader>
-
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                    <FormField
-                      control={form.control}
-                      name="nombre"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nombre</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Nombre del producto" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="precio"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Precio ($)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              step="0.01"
-                              placeholder="0.00"
-                              {...field}
-                              onChange={(e) => {
-                                field.onChange(parseFloat(e.target.value));
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="categoria"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Categoría</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Seleccionar categoría" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {categorias.map(categoria => (
-                                <SelectItem key={categoria} value={categoria}>
-                                  {categoria}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="descripcion"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Descripción</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Descripción del producto" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="imagen"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>URL de Imagen</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="https://ejemplo.com/imagen.jpg" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <DialogFooter>
-                      <Button variant="outline" type="button" onClick={() => setIsDialogOpen(false)}>
-                        Cancelar
-                      </Button>
-                      <Button type="submit">
-                        {editingProduct ? "Actualizar" : "Crear"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+          <div className="flex items-center mb-4">
+            <Search className="mr-2 h-4 w-4 text-gray-400" />
+            <Input 
+              placeholder="Buscar productos..." 
+              value={searchTerm}
+              onChange={handleSearch}
+              className="max-w-sm"
+            />
           </div>
-
+          
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>ID</TableHead>
                   <TableHead>Imagen</TableHead>
                   <TableHead>Nombre</TableHead>
                   <TableHead>Precio</TableHead>
                   <TableHead>Categoría</TableHead>
-                  <TableHead className="w-[100px]">Acciones</TableHead>
+                  <TableHead className="w-[150px]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.length > 0 ? (
-                  filteredProducts.map((producto) => (
-                    <TableRow key={producto.id}>
-                      <TableCell>
-                        <div className="h-12 w-12 overflow-hidden rounded-sm">
-                          <img 
-                            src={producto.imagen} 
-                            alt={producto.nombre}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{producto.nombre}</p>
-                          <p className="text-xs text-muted-foreground line-clamp-1">{producto.descripcion}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>${producto.precio.toFixed(2)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="bg-accent/30">
-                          {producto.categoria}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            size="icon" 
-                            variant="ghost"
-                            onClick={() => handleEdit(producto)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                            <span className="sr-only">Editar</span>
-                          </Button>
-                          <Button 
-                            size="icon" 
-                            variant="ghost"
-                            onClick={() => handleDelete(producto.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                            <span className="sr-only">Eliminar</span>
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
-                      No se encontraron productos.
+                {filteredProducts.map((producto) => (
+                  <TableRow key={producto.id}>
+                    <TableCell>{producto.id}</TableCell>
+                    <TableCell>
+                      <div className="w-12 h-12 rounded-md overflow-hidden">
+                        <img 
+                          src={producto.imagen} 
+                          alt={producto.nombre} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell>{producto.nombre}</TableCell>
+                    <TableCell>${producto.precio}</TableCell>
+                    <TableCell>{producto.categoria}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          onClick={() => openEditDialog(producto)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          onClick={() => handleDelete(producto.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
-                )}
+                ))}
               </TableBody>
             </Table>
           </div>
         </CardContent>
       </Card>
+      
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>
+              {currentProduct ? "Editar Producto" : "Añadir Producto"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="nombre" className="text-right">Nombre</Label>
+              <Input 
+                id="nombre"
+                name="nombre"
+                value={formData.nombre}
+                onChange={handleInputChange}
+                placeholder="Nombre del producto"
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="precio" className="text-right">Precio</Label>
+              <Input 
+                id="precio"
+                name="precio"
+                type="number"
+                value={formData.precio}
+                onChange={handleInputChange}
+                placeholder="Precio"
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="categoria" className="text-right">Categoría</Label>
+              <Select
+                value={formData.categoria}
+                onValueChange={handleSelectChange}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecciona una categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categorias.map(cat => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="imagen" className="text-right">URL Imagen</Label>
+              <Input 
+                id="imagen"
+                name="imagen"
+                value={formData.imagen}
+                onChange={handleInputChange}
+                placeholder="URL de la imagen"
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="descripcion" className="text-right">Descripción</Label>
+              <textarea
+                id="descripcion"
+                name="descripcion"
+                value={formData.descripcion}
+                onChange={handleTextareaChange}
+                placeholder="Descripción del producto"
+                className="col-span-3 min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSubmit}>Guardar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
