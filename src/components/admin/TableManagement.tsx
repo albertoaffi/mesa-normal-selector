@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Edit, Trash2, Copy, Save, Template } from "lucide-react";
+import { Plus, Edit, Trash2, Copy, Save, LayoutTemplate } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 import AdminTableMap from './AdminTableMap';
@@ -394,7 +395,7 @@ const TableManagement = () => {
                     <h4 className="font-medium text-sm">{template.name}</h4>
                     <div className="flex space-x-1">
                       <Button variant="ghost" size="sm" onClick={() => loadTemplate(template)}>
-                        <Template className="h-4 w-4" />
+                        <LayoutTemplate className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => deleteTemplate(template.id)}>
                         <Trash2 className="h-4 w-4" />
