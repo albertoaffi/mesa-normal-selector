@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LayoutDashboard, Table, Users, Package } from "lucide-react";
 import TableManagement from "@/components/admin/TableManagement";
 import Dashboard from "@/components/admin/Dashboard";
+import UserManagement from "@/components/admin/UserManagement";
 
 const Admin = () => {
   return (
@@ -40,12 +41,7 @@ const Admin = () => {
           </TabsContent>
           
           <TabsContent value="users">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">Gestión de Usuarios</h2>
-              <p className="text-gray-600 dark:text-gray-300">
-                Esta sección se implementará próximamente para gestionar usuarios y permisos.
-              </p>
-            </div>
+            <UserManagement />
           </TabsContent>
           
           <TabsContent value="products">
