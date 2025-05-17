@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Edit, Trash2, Copy } from "lucide-react";
+import { Plus, Edit, Trash2, Copy, Save, Template } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 import AdminTableMap from './AdminTableMap';
@@ -30,8 +29,16 @@ const initialTables: TableData[] = [
   { id: 3, nombre: "Mesa Bronze 1", categoria: "bronze", capacidad: 4, ubicacion: "Área Bronze", precioMinimo: 2000, disponible: true, descripcion: "Mesa estándar" },
 ];
 
-// Template for quick adding tables
-const tableTemplates = [
+// Template for quick adding tables - now properly typed
+const tableTemplates: {
+  nombre: string;
+  categoria: 'gold' | 'silver' | 'bronze' | 'purple' | 'red';
+  capacidad: number;
+  ubicacion: string;
+  precioMinimo: number;
+  disponible: boolean;
+  descripcion: string;
+}[] = [
   { nombre: "Mesa Gold", categoria: "gold", capacidad: 8, ubicacion: "VIP", precioMinimo: 5000, disponible: true, descripcion: "Mesa VIP con vista privilegiada" },
   { nombre: "Mesa Silver", categoria: "silver", capacidad: 6, ubicacion: "Área Silver", precioMinimo: 3000, disponible: true, descripcion: "Mesa con buena ubicación" },
   { nombre: "Mesa Bronze", categoria: "bronze", capacidad: 4, ubicacion: "Área Bronze", precioMinimo: 2000, disponible: true, descripcion: "Mesa estándar" },
@@ -46,6 +53,8 @@ const TableManagement = () => {
   const [backgroundImage, setBackgroundImage] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [saveTemplateDialog, setSaveTemplateDialog] = useState(false);
+  const [templateName, setTemplateName] = useState(""); 
   const [formData, setFormData] = useState<TableData>({
     id: 0,
     nombre: "",
@@ -56,6 +65,96 @@ const TableManagement = () => {
     disponible: true,
     descripcion: ""
   });
+  
+  // Get stored templates from localStorage or initialize empty array
+  const getStoredTemplates = () => {
+    const storedTemplates = localStorage.getItem('tableTemplates');
+    return storedTemplates ? JSON.parse(storedTemplates) : [];
+  };
+  
+  const [savedTemplates, setSavedTemplates] = useState(getStoredTemplates());
+  
+  // Save current table arrangement as template
+  const saveCurrentArrangement = () => {
+    if (templateName.trim() === "") {
+      toast({
+        title: "Nombre requerido",
+        description: "Por favor ingresa un nombre para la plantilla.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Create template object with name and tables data
+    const newTemplate = {
+      id: Date.now(),
+      name: templateName,
+      tables: tables,
+      backgroundImage: backgroundImage
+    };
+
+    const updatedTemplates = [...savedTemplates, newTemplate];
+    
+    // Update state and localStorage
+    setSavedTemplates(updatedTemplates);
+    localStorage.setItem('tableTemplates', JSON.stringify(updatedTemplates));
+    
+    // Also save the current state as the "active" template for reservations
+    localStorage.setItem('activeTemplate', JSON.stringify({
+      tables: tables,
+      backgroundImage: backgroundImage
+    }));
+
+    toast({
+      title: "Plantilla guardada",
+      description: `La plantilla "${templateName}" ha sido guardada y activada para reservaciones.`
+    });
+
+    // Reset and close dialog
+    setTemplateName("");
+    setSaveTemplateDialog(false);
+  };
+
+  // Load a saved template
+  const loadTemplate = (template: any) => {
+    setTables(template.tables);
+    setBackgroundImage(template.backgroundImage || "");
+    
+    // Save as active template for reservations
+    localStorage.setItem('activeTemplate', JSON.stringify({
+      tables: template.tables,
+      backgroundImage: template.backgroundImage
+    }));
+    
+    toast({
+      title: "Plantilla cargada",
+      description: `La plantilla "${template.name}" ha sido cargada y activada para reservaciones.`
+    });
+  };
+  
+  // Delete a saved template
+  const deleteTemplate = (templateId: number) => {
+    if (confirm("¿Estás seguro de que deseas eliminar esta plantilla?")) {
+      const updatedTemplates = savedTemplates.filter((t: any) => t.id !== templateId);
+      setSavedTemplates(updatedTemplates);
+      localStorage.setItem('tableTemplates', JSON.stringify(updatedTemplates));
+      
+      toast({
+        title: "Plantilla eliminada",
+        description: "La plantilla ha sido eliminada correctamente.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Also save current arrangement as active whenever tables are updated
+  const updateTablesAndActive = (newTables: TableData[]) => {
+    setTables(newTables);
+    localStorage.setItem('activeTemplate', JSON.stringify({
+      tables: newTables,
+      backgroundImage: backgroundImage
+    }));
+  };
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -72,9 +171,10 @@ const TableManagement = () => {
     
     if (editMode && currentTable) {
       // Edit existing table
-      setTables(tables.map(table => 
+      const updatedTables = tables.map(table => 
         table.id === currentTable.id ? { ...formData } : table
-      ));
+      );
+      updateTablesAndActive(updatedTables);
       toast({
         title: "Mesa actualizada",
         description: `La mesa ${formData.nombre} ha sido actualizada correctamente.`
@@ -82,7 +182,8 @@ const TableManagement = () => {
     } else {
       // Add new table
       const newId = tables.length > 0 ? Math.max(...tables.map(t => t.id)) + 1 : 1;
-      setTables([...tables, { ...formData, id: newId }]);
+      const updatedTables = [...tables, { ...formData, id: newId }];
+      updateTablesAndActive(updatedTables);
       toast({
         title: "Mesa añadida",
         description: `La mesa ${formData.nombre} ha sido añadida correctamente.`
@@ -119,7 +220,9 @@ const TableManagement = () => {
       y: table.y ? table.y + 20 : undefined
     };
     
-    setTables([...tables, clonedTable]);
+    const updatedTables = [...tables, clonedTable];
+    updateTablesAndActive(updatedTables);
+    
     toast({
       title: "Mesa clonada",
       description: `La mesa ${table.nombre} ha sido clonada correctamente.`
@@ -135,7 +238,9 @@ const TableManagement = () => {
   
   const handleDeleteTable = (id: number) => {
     if (confirm("¿Estás seguro de que deseas eliminar esta mesa?")) {
-      setTables(tables.filter(table => table.id !== id));
+      const updatedTables = tables.filter(table => table.id !== id);
+      updateTablesAndActive(updatedTables);
+      
       toast({
         title: "Mesa eliminada",
         description: "La mesa ha sido eliminada correctamente.",
@@ -152,6 +257,14 @@ const TableManagement = () => {
         const result = reader.result;
         if (typeof result === 'string') {
           setBackgroundImage(result);
+          
+          // Update active template with new background
+          const activeTemplate = JSON.parse(localStorage.getItem('activeTemplate') || '{}');
+          localStorage.setItem('activeTemplate', JSON.stringify({
+            ...activeTemplate,
+            backgroundImage: result
+          }));
+          
           toast({
             title: "Imagen cargada",
             description: "La imagen de fondo ha sido actualizada."
@@ -162,7 +275,15 @@ const TableManagement = () => {
     }
   };
 
-  const handleQuickAdd = (template: Omit<TableData, 'id'>) => {
+  const handleQuickAdd = (template: {
+    nombre: string;
+    categoria: 'gold' | 'silver' | 'bronze' | 'purple' | 'red';
+    capacidad: number;
+    ubicacion: string;
+    precioMinimo: number;
+    disponible: boolean;
+    descripcion: string;
+  }) => {
     const newId = tables.length > 0 ? Math.max(...tables.map(t => t.id)) + 1 : 1;
     const number = tables.filter(t => t.categoria === template.categoria).length + 1;
     
@@ -172,7 +293,9 @@ const TableManagement = () => {
       nombre: `${template.nombre} ${number}`,
     };
     
-    setTables([...tables, newTable]);
+    const updatedTables = [...tables, newTable];
+    updateTablesAndActive(updatedTables);
+    
     toast({
       title: "Mesa añadida",
       description: `${newTable.nombre} ha sido añadida correctamente.`
@@ -187,6 +310,10 @@ const TableManagement = () => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">Gestión de Mesas</h2>
           <div className="flex gap-2">
+            <Button onClick={() => setSaveTemplateDialog(true)} variant="outline">
+              <Save className="mr-2 h-4 w-4" />
+              Guardar Plantilla
+            </Button>
             <Button onClick={() => setShowQuickAdd(true)} variant="secondary">
               <Plus className="mr-2 h-4 w-4" />
               Añadir Rápido
@@ -197,6 +324,31 @@ const TableManagement = () => {
             </Button>
           </div>
         </div>
+        
+        {/* Save Template Dialog */}
+        <Dialog open={saveTemplateDialog} onOpenChange={setSaveTemplateDialog}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Guardar Plantilla de Mesas</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <Label htmlFor="templateName">Nombre de la Plantilla</Label>
+              <Input 
+                id="templateName" 
+                value={templateName} 
+                onChange={(e) => setTemplateName(e.target.value)} 
+                placeholder="Ej: Evento Especial, Noche de Viernes, etc."
+              />
+              <p className="text-sm text-gray-500">
+                Esta plantilla guardará la posición actual de todas las mesas y estará disponible para ser utilizada en reservaciones.
+              </p>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setSaveTemplateDialog(false)}>Cancelar</Button>
+              <Button onClick={saveCurrentArrangement}>Guardar Plantilla</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         
         {/* Quick Add Dialog */}
         <Dialog open={showQuickAdd} onOpenChange={setShowQuickAdd}>
@@ -230,6 +382,33 @@ const TableManagement = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        
+        {/* Saved Templates Section */}
+        {savedTemplates.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-3">Plantillas Guardadas</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {savedTemplates.map((template: any) => (
+                <div key={template.id} className="border rounded-md p-3 flex flex-col">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-medium text-sm">{template.name}</h4>
+                    <div className="flex space-x-1">
+                      <Button variant="ghost" size="sm" onClick={() => loadTemplate(template)}>
+                        <Template className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => deleteTemplate(template.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {template.tables.length} mesas
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         
         {showForm && (
           <form onSubmit={handleSubmit} className="space-y-4 mb-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
@@ -332,9 +511,10 @@ const TableManagement = () => {
           tables={tables} 
           backgroundImage={backgroundImage}
           onUpdateTable={(updatedTable) => {
-            setTables(tables.map(table => 
+            const updatedTables = tables.map(table => 
               table.id === updatedTable.id ? updatedTable : table
-            ));
+            );
+            updateTablesAndActive(updatedTables);
           }}
         />
         
