@@ -36,8 +36,8 @@ const AdminTableMap: React.FC<AdminTableMapProps> = ({ tables, backgroundImage, 
       if (!positions[table.id]) {
         // Start with a default position if x and y are not set
         newPositions[table.id] = { 
-          x: table.x || Math.random() * 200, 
-          y: table.y || Math.random() * 100 
+          x: table.x || (Math.random() * 200), 
+          y: table.y || (Math.random() * 100) 
         };
         updated = true;
       }
@@ -64,22 +64,16 @@ const AdminTableMap: React.FC<AdminTableMapProps> = ({ tables, backgroundImage, 
         y: data.y
       });
     }
-    
-    toast({
-      title: "Posición actualizada",
-      description: `La posición de la mesa ha sido actualizada.`,
-      variant: "default"
-    });
   };
 
   // Helper function to get the appropriate color for each table category
   const getTableColor = (category: string) => {
     return {
-      gold: "bg-club-gold",
-      silver: "bg-club-silver",
-      bronze: "bg-club-bronze",
-      purple: "bg-club-purple",
-      red: "bg-club-red"
+      gold: "bg-club-gold mesa-gold",
+      silver: "bg-club-silver mesa-silver",
+      bronze: "bg-club-bronze mesa-bronze",
+      purple: "bg-club-purple mesa-purple",
+      red: "bg-club-red mesa-red"
     }[category] || "bg-gray-200";
   };
 
@@ -119,6 +113,7 @@ const AdminTableMap: React.FC<AdminTableMapProps> = ({ tables, backgroundImage, 
           <Draggable
             key={table.id}
             defaultPosition={positions[table.id] || { x: 0, y: 0 }}
+            position={positions[table.id] || { x: table.x || 0, y: table.y || 0 }}
             grid={[5, 5]}
             bounds="parent"
             onStop={(e, data) => handleDragStop(table.id, data)}
@@ -139,7 +134,8 @@ const AdminTableMap: React.FC<AdminTableMapProps> = ({ tables, backgroundImage, 
       </div>
       
       <div className="text-sm text-gray-500">
-        Consejo: Para un mejor posicionamiento, carga primero una imagen del plano del local.
+        <p>Consejo: Para un mejor posicionamiento, carga primero una imagen del plano del local.</p>
+        <p className="mt-1 text-xs">Las mesas nuevas o clonadas aparecerán automáticamente en el mapa.</p>
       </div>
     </div>
   );

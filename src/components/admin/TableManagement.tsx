@@ -1,11 +1,13 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Copy } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 import AdminTableMap from './AdminTableMap';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 // Define the Table interface to ensure type safety
 interface TableData {
@@ -28,12 +30,22 @@ const initialTables: TableData[] = [
   { id: 3, nombre: "Mesa Bronze 1", categoria: "bronze", capacidad: 4, ubicacion: "Área Bronze", precioMinimo: 2000, disponible: true, descripcion: "Mesa estándar" },
 ];
 
+// Template for quick adding tables
+const tableTemplates = [
+  { nombre: "Mesa Gold", categoria: "gold", capacidad: 8, ubicacion: "VIP", precioMinimo: 5000, disponible: true, descripcion: "Mesa VIP con vista privilegiada" },
+  { nombre: "Mesa Silver", categoria: "silver", capacidad: 6, ubicacion: "Área Silver", precioMinimo: 3000, disponible: true, descripcion: "Mesa con buena ubicación" },
+  { nombre: "Mesa Bronze", categoria: "bronze", capacidad: 4, ubicacion: "Área Bronze", precioMinimo: 2000, disponible: true, descripcion: "Mesa estándar" },
+  { nombre: "Mesa Purple", categoria: "purple", capacidad: 4, ubicacion: "Área Purple", precioMinimo: 2500, disponible: true, descripcion: "Mesa zona premium" },
+  { nombre: "Mesa Red", categoria: "red", capacidad: 2, ubicacion: "Área Red", precioMinimo: 1500, disponible: true, descripcion: "Mesa cerca de pista" }
+];
+
 const TableManagement = () => {
   const [tables, setTables] = useState<TableData[]>(initialTables);
   const [editMode, setEditMode] = useState(false);
   const [currentTable, setCurrentTable] = useState<TableData | null>(null);
   const [backgroundImage, setBackgroundImage] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [formData, setFormData] = useState<TableData>({
     id: 0,
     nombre: "",
@@ -81,6 +93,10 @@ const TableManagement = () => {
     setShowForm(false);
     setEditMode(false);
     setCurrentTable(null);
+    resetForm();
+  };
+  
+  const resetForm = () => {
     setFormData({
       id: 0,
       nombre: "",
@@ -90,6 +106,23 @@ const TableManagement = () => {
       precioMinimo: 1000,
       disponible: true,
       descripcion: ""
+    });
+  };
+
+  const handleCloneTable = (table: TableData) => {
+    const newId = tables.length > 0 ? Math.max(...tables.map(t => t.id)) + 1 : 1;
+    const clonedTable = { 
+      ...table, 
+      id: newId,
+      nombre: `${table.nombre} (Copia)`,
+      x: table.x ? table.x + 20 : undefined, // Offset position slightly
+      y: table.y ? table.y + 20 : undefined
+    };
+    
+    setTables([...tables, clonedTable]);
+    toast({
+      title: "Mesa clonada",
+      description: `La mesa ${table.nombre} ha sido clonada correctamente.`
     });
   };
   
@@ -129,16 +162,74 @@ const TableManagement = () => {
     }
   };
 
+  const handleQuickAdd = (template: Omit<TableData, 'id'>) => {
+    const newId = tables.length > 0 ? Math.max(...tables.map(t => t.id)) + 1 : 1;
+    const number = tables.filter(t => t.categoria === template.categoria).length + 1;
+    
+    const newTable = {
+      ...template,
+      id: newId,
+      nombre: `${template.nombre} ${number}`,
+    };
+    
+    setTables([...tables, newTable]);
+    toast({
+      title: "Mesa añadida",
+      description: `${newTable.nombre} ha sido añadida correctamente.`
+    });
+    
+    setShowQuickAdd(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">Gestión de Mesas</h2>
-          <Button onClick={() => setShowForm(!showForm)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Nueva Mesa
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowQuickAdd(true)} variant="secondary">
+              <Plus className="mr-2 h-4 w-4" />
+              Añadir Rápido
+            </Button>
+            <Button onClick={() => setShowForm(!showForm)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Mesa Personalizada
+            </Button>
+          </div>
         </div>
+        
+        {/* Quick Add Dialog */}
+        <Dialog open={showQuickAdd} onOpenChange={setShowQuickAdd}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Añadir Mesa Rápidamente</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <p className="text-sm text-gray-500">Selecciona un tipo de mesa para añadir rápidamente:</p>
+              <div className="grid grid-cols-1 gap-3">
+                {tableTemplates.map((template, idx) => (
+                  <Button 
+                    key={idx} 
+                    onClick={() => handleQuickAdd(template)}
+                    className={`justify-start text-left h-auto py-3`}
+                    variant="outline"
+                  >
+                    <div className="flex items-center w-full">
+                      <div className={`w-3 h-3 rounded-full mr-2 mesa-${template.categoria}`}></div>
+                      <div>
+                        <div className="font-medium">{template.nombre}</div>
+                        <div className="text-xs text-gray-500">{template.capacidad} personas - ${template.precioMinimo}</div>
+                      </div>
+                    </div>
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowQuickAdd(false)}>Cancelar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         
         {showForm && (
           <form onSubmit={handleSubmit} className="space-y-4 mb-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
@@ -249,6 +340,7 @@ const TableManagement = () => {
         
         {/* Table List */}
         <div className="overflow-x-auto">
+          <h3 className="text-lg font-medium my-4">Listado de Mesas</h3>
           <Table>
             <TableHeader>
               <TableRow>
@@ -281,6 +373,9 @@ const TableManagement = () => {
                     <div className="flex space-x-1">
                       <Button variant="ghost" size="sm" onClick={() => handleEditTable(table)}>
                         <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleCloneTable(table)}>
+                        <Copy className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleDeleteTable(table.id)}>
                         <Trash2 className="h-4 w-4" />
