@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -6,8 +5,10 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Check, Printer, CreditCard, receipt as ReceiptIcon } from "lucide-react";
+import { Check, Printer, CreditCard, ReceiptText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -357,7 +358,7 @@ const Confirmacion = () => {
                     {isPaid ? (
                       <Check className="h-5 w-5 text-green-500" />
                     ) : (
-                      <ReceiptIcon className="h-5 w-5 text-amber-500" />
+                      <ReceiptText className="h-5 w-5 text-amber-500" />
                     )}
                     <h3 className="font-medium">Estado del pago</h3>
                   </div>
