@@ -30,12 +30,20 @@ const Home = () => {
             <p className="text-xl md:text-2xl text-gray-200 mb-8 max-w-3xl mx-auto">
               La mejor experiencia nocturna con reservas de mesa VIP y servicio personalizado
             </p>
-            <Button 
-              className="bg-club-gold text-black hover:bg-opacity-90 px-8 py-6 text-lg font-bold animate-pulse-glow"
-              onClick={() => navigate('/reservar')}
-            >
-              Reservar Ahora
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                className="bg-club-gold text-black hover:bg-opacity-90 px-8 py-6 text-lg font-bold animate-pulse-glow"
+                onClick={() => navigate('/reservar')}
+              >
+                Reservar Ahora
+              </Button>
+              <Button 
+                className="bg-club-purple text-white hover:bg-opacity-90 px-8 py-6 text-lg font-bold"
+                onClick={() => navigate('/guest-list')}
+              >
+                Guest List
+              </Button>
+            </div>
           </div>
         </section>
         
@@ -90,12 +98,20 @@ const Home = () => {
               Reserva ahora tu mesa en The Normal y disfruta de la mejor experiencia nocturna. 
               Elige tus bebidas favoritas y tenlas listas en tu mesa al llegar.
             </p>
-            <Button 
-              className="bg-club-gold text-black hover:bg-opacity-90 px-6 py-3 text-lg"
-              onClick={() => navigate('/reservar')}
-            >
-              Reservar Mesa
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                className="bg-club-gold text-black hover:bg-opacity-90 px-6 py-3 text-lg"
+                onClick={() => navigate('/reservar')}
+              >
+                Reservar Mesa
+              </Button>
+              <Button 
+                className="bg-club-purple text-white hover:bg-opacity-90 px-6 py-3 text-lg"
+                onClick={() => navigate('/guest-list')}
+              >
+                Entrar en Guest List
+              </Button>
+            </div>
           </div>
         </section>
       </main>

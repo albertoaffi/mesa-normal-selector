@@ -25,6 +25,14 @@ const Header: React.FC = () => {
           </li>
           <li>
             <button 
+              onClick={() => navigate('/guest-list')}
+              className="px-4 py-2 rounded-md border border-club-purple/50 bg-black/50 text-club-purple hover:bg-club-purple/10 transition-all"
+            >
+              Guest List
+            </button>
+          </li>
+          <li>
+            <button 
               onClick={() => navigate('/contacto')}
               className="px-4 py-2 rounded-md text-white hover:text-club-gold transition-all"
             >
