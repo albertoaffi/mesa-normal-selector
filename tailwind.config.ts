@@ -74,6 +74,9 @@ export default {
 			backgroundImage: {
 				'club-gradient': 'linear-gradient(to right, #000000, #1A1A1A)',
 				'gold-gradient': 'linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7)',
+				'purple-gradient': 'linear-gradient(to right, #8B5CF6, #9932CC)',
+				'premium-dark': 'linear-gradient(to bottom, #121212, #000000)',
+				'card-gradient': 'linear-gradient(to bottom right, rgba(30, 30, 30, 0.5), rgba(10, 10, 10, 0.8))',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -104,12 +107,34 @@ export default {
 					'50%': { 
 						boxShadow: '0 0 20px rgba(255, 215, 0, 0.8)' 
 					}
+				},
+				'fade-in': {
+					'0%': { 
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': { 
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'scale-in': {
+					'0%': {
+						transform: 'scale(0.95)',
+						opacity: '0'
+					},
+					'100%': {
+						transform: 'scale(1)',
+						opacity: '1'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'pulse-glow': 'pulse-glow 2s infinite'
+				'pulse-glow': 'pulse-glow 2s infinite',
+				'fade-in': 'fade-in 0.5s ease-out',
+				'scale-in': 'scale-in 0.3s ease-out',
 			}
 		}
 	},
