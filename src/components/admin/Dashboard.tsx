@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { ArrowUp, ArrowDown, CircleDollarSign, Users, Calendar, Coffee, Clock } from "lucide-react";
+import { ArrowUp, ArrowDown, CircleDollarSign, Users, Calendar, Coffee, Clock, Ticket, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 // Datos de ejemplo para los gráficos
 const revenueData = [
@@ -31,7 +33,26 @@ const recentReservations = [
   { id: 4, cliente: 'María González', mesa: 'Mesa Gold 1', fecha: '16/05/2025', hora: '20:30', personas: 8, estado: 'Cancelada' },
 ];
 
+// Datos de ejemplo para guest list
+const guestListData = [
+  { id: 1, nombre: 'Laura Martínez', email: 'laura@example.com', fecha: '15/05/2025', telefono: '555-123-4567', invitados: 2 },
+  { id: 2, nombre: 'Roberto Sánchez', email: 'roberto@example.com', fecha: '15/05/2025', telefono: '555-987-6543', invitados: 1 },
+  { id: 3, nombre: 'Carmen Rodríguez', email: 'carmen@example.com', fecha: '16/05/2025', telefono: '555-456-7890', invitados: 4 },
+  { id: 4, nombre: 'Daniel Moreno', email: 'daniel@example.com', fecha: '16/05/2025', telefono: '555-789-0123', invitados: 2 },
+  { id: 5, nombre: 'Patricia Gómez', email: 'patricia@example.com', fecha: '17/05/2025', telefono: '555-654-3210', invitados: 3 },
+];
+
 const Dashboard = () => {
+  const [guestListLimit, setGuestListLimit] = useState<number>(50);
+  const [currentGuestCount, setCurrentGuestCount] = useState<number>(28);
+
+  const handleGuestListLimitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (!isNaN(value) && value >= 0) {
+      setGuestListLimit(value);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Tarjetas de estadísticas */}
@@ -164,6 +185,100 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Sección de Guest List */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Ticket className="h-5 w-5" />
+              <span>Guest List</span>
+            </CardTitle>
+            <CardDescription>Administración de lista de invitados</CardDescription>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <div className="flex flex-col">
+              <span className="text-xs text-muted-foreground">Registrados: {currentGuestCount}</span>
+              <span className="text-xs text-muted-foreground">Límite: {guestListLimit}</span>
+            </div>
+            <Button variant="ghost" size="icon">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="flex-1">
+              <label className="text-sm font-medium mb-1 block">Configuración de límite</label>
+              <div className="flex items-center gap-2">
+                <Input 
+                  type="number" 
+                  value={guestListLimit} 
+                  onChange={handleGuestListLimitChange}
+                  className="max-w-[120px]"
+                  min="0"
+                />
+                <Button size="sm" variant="outline">Aplicar</Button>
+              </div>
+            </div>
+            
+            <div className="flex-1">
+              <div className="relative pt-1">
+                <div className="text-sm font-medium mb-1 flex justify-between">
+                  <span>Capacidad</span>
+                  <span>{Math.round((currentGuestCount / guestListLimit) * 100)}%</span>
+                </div>
+                <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200 dark:bg-gray-700">
+                  <div 
+                    style={{ width: `${Math.min(100, (currentGuestCount / guestListLimit) * 100)}%` }} 
+                    className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center ${
+                      (currentGuestCount / guestListLimit) > 0.8 ? 'bg-red-500' : 'bg-emerald-500'
+                    }`}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Teléfono</TableHead>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Invitados</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {guestListData.map((guest) => (
+                <TableRow key={guest.id}>
+                  <TableCell className="font-medium">{guest.nombre}</TableCell>
+                  <TableCell>{guest.email}</TableCell>
+                  <TableCell>{guest.telefono}</TableCell>
+                  <TableCell>{guest.fecha}</TableCell>
+                  <TableCell>{guest.invitados}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm">Editar</Button>
+                    <Button variant="ghost" size="sm" className="text-red-500">Eliminar</Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+        
+        <CardFooter className="flex justify-between">
+          <Button variant="outline" size="sm">Exportar lista</Button>
+          <p className="flex items-center text-sm text-muted-foreground">
+            <Clock className="mr-1 h-4 w-4" />
+            Actualizado: 14 de Mayo, 2025 - 14:30
+          </p>
+        </CardFooter>
+      </Card>
 
       {/* Tabla de reservas recientes */}
       <Card>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MesaCard, { Mesa } from '@/components/MesaCard';
@@ -12,6 +14,9 @@ import ProductCard, { Producto } from '@/components/ProductCard';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 // Datos simulados para las mesas
 const mesas: Mesa[] = [
@@ -132,7 +137,7 @@ const productos: Producto[] = [
 const Reservar = () => {
   const [mesaSeleccionada, setMesaSeleccionada] = useState<Mesa | null>(null);
   const [productosCantidad, setProductosCantidad] = useState<Record<number, number>>({});
-  const [fecha, setFecha] = useState<string>("");
+  const [fecha, setFecha] = useState<Date | undefined>(undefined);
   const [nombre, setNombre] = useState<string>("");
   const [telefono, setTelefono] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -207,7 +212,7 @@ const Reservar = () => {
             ...p,
             cantidad: productosCantidad[p.id] || 0
           })),
-          fecha,
+          fecha: fecha,
           nombre,
           total: totalProductos
         } 
@@ -220,6 +225,11 @@ const Reservar = () => {
       setPaso(paso - 1);
     }
   };
+
+  // Filter out past dates and limit to next 30 days
+  const today = new Date();
+  const maxDate = new Date();
+  maxDate.setDate(today.getDate() + 30);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -450,12 +460,33 @@ const Reservar = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="fecha">Fecha de reservación</Label>
-                      <Input 
-                        id="fecha" 
-                        type="date" 
-                        value={fecha} 
-                        onChange={(e) => setFecha(e.target.value)} 
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="fecha"
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !fecha && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {fecha ? format(fecha, "PPP") : <span>Selecciona una fecha</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 bg-gray-900 border border-gray-800" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={fecha}
+                            onSelect={setFecha}
+                            disabled={(date) => 
+                              date < today || date > maxDate
+                            }
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </CardContent>
                 </Card>
@@ -499,6 +530,19 @@ const Reservar = () => {
                             <p className="text-gray-500 text-sm">No hay productos seleccionados</p>
                           )}
                         </div>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div>
+                        <h3 className="font-medium mb-2">Fecha seleccionada</h3>
+                        {fecha ? (
+                          <div className="p-3 bg-gray-900 rounded-md">
+                            <p className="font-medium">{format(fecha, "PPPP")}</p>
+                          </div>
+                        ) : (
+                          <p className="text-gray-500 text-sm">No has seleccionado una fecha</p>
+                        )}
                       </div>
                       
                       <Separator />
