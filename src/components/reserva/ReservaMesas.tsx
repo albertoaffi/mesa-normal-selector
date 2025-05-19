@@ -13,13 +13,15 @@ interface ReservaMesasProps {
   mesasDisponiblesFecha: Mesa[];
   mesaSeleccionada: Mesa | null;
   handleMesaSelect: (mesa: Mesa) => void;
+  tieneCodigoVIP?: boolean;
 }
 
 const ReservaMesas: React.FC<ReservaMesasProps> = ({
   fecha,
   mesasDisponiblesFecha,
   mesaSeleccionada,
-  handleMesaSelect
+  handleMesaSelect,
+  tieneCodigoVIP = false
 }) => {
   if (!fecha) {
     return (
@@ -48,6 +50,7 @@ const ReservaMesas: React.FC<ReservaMesasProps> = ({
             mesas={mesasDisponiblesFecha}
             selectedMesa={mesaSeleccionada}
             onSelectMesa={handleMesaSelect}
+            tieneCodigoVIP={tieneCodigoVIP}
           />
         </TabsContent>
         

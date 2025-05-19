@@ -69,6 +69,7 @@ const Reservar = () => {
                 mesasDisponiblesFecha={reserva.mesasDisponiblesFecha}
                 mesaSeleccionada={reserva.mesaSeleccionada}
                 handleMesaSelect={reserva.handleMesaSelect}
+                tieneCodigoVIP={reserva.tieneCodigoVIP}
               />
             </div>
           )}

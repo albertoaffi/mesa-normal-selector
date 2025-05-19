@@ -6,9 +6,10 @@ interface TableMapProps {
   mesas: Mesa[];
   selectedMesa: Mesa | null;
   onSelectMesa: (mesa: Mesa) => void;
+  tieneCodigoVIP?: boolean;
 }
 
-const TableMap: React.FC<TableMapProps> = ({ mesas, selectedMesa, onSelectMesa }) => {
+const TableMap: React.FC<TableMapProps> = ({ mesas, selectedMesa, onSelectMesa, tieneCodigoVIP = false }) => {
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [tablePositions, setTablePositions] = useState<{[key: number]: {x: number, y: number}}>({});
   
@@ -82,6 +83,19 @@ const TableMap: React.FC<TableMapProps> = ({ mesas, selectedMesa, onSelectMesa }
     }[category] || "bg-gray-200";
   };
 
+  // Determinar si una mesa está disponible, considerando el código VIP para mesas Gold
+  const isMesaSelectable = (mesa: Mesa): boolean => {
+    // Si la mesa no está disponible en general, no se puede seleccionar
+    if (!mesa.disponible) return false;
+    
+    // Si es una mesa Gold, solo se puede seleccionar si tiene código VIP
+    if ((mesa.categoria === 'gold') && !tieneCodigoVIP) {
+      return false;
+    }
+    
+    return true;
+  };
+
   // If we have a saved background and positions, use those
   if (backgroundImage && Object.keys(tablePositions).length > 0) {
     return (
@@ -100,12 +114,14 @@ const TableMap: React.FC<TableMapProps> = ({ mesas, selectedMesa, onSelectMesa }
             const position = tablePositions[mesa.id];
             if (!position) return null;
             
+            const isSelectable = isMesaSelectable(mesa);
+            
             return (
               <div 
                 key={mesa.id}
-                onClick={() => mesa.disponible && onSelectMesa(mesa)}
-                className={`absolute ${getTableColor(mesa.categoria, selectedMesa?.id === mesa.id, mesa.disponible)} 
-                  rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105`}
+                onClick={() => isSelectable && onSelectMesa(mesa)}
+                className={`absolute ${getTableColor(mesa.categoria, selectedMesa?.id === mesa.id, isSelectable)} 
+                  rounded-lg flex flex-col items-center justify-center ${isSelectable ? 'cursor-pointer' : 'cursor-not-allowed'} transition-all hover:scale-105`}
                 style={{
                   left: `${position.x}px`,
                   top: `${position.y}px`,
@@ -146,16 +162,19 @@ const TableMap: React.FC<TableMapProps> = ({ mesas, selectedMesa, onSelectMesa }
         <div className="absolute top-[5%] left-[20%] w-[35%] h-[40%] border border-dashed border-gray-600 rounded-lg p-2">
           <div className="text-xs text-gray-400 mb-2">Área VIP</div>
           <div className="flex flex-wrap gap-3 justify-around">
-            {tablesByCategory['gold']?.map(mesa => (
-              <div 
-                key={mesa.id}
-                onClick={() => mesa.disponible && onSelectMesa(mesa)}
-                className={`w-[45%] h-12 ${getTableColor('gold', selectedMesa?.id === mesa.id, mesa.disponible)} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105`}
-              >
-                <span className="text-xs font-bold">{mesa.nombre}</span>
-                <span className="text-[10px]">{mesa.capacidad} personas</span>
-              </div>
-            ))}
+            {tablesByCategory['gold']?.map(mesa => {
+              const isSelectable = isMesaSelectable(mesa);
+              return (
+                <div 
+                  key={mesa.id}
+                  onClick={() => isSelectable && onSelectMesa(mesa)}
+                  className={`w-[45%] h-12 ${getTableColor('gold', selectedMesa?.id === mesa.id, isSelectable)} rounded-lg flex flex-col items-center justify-center ${isSelectable ? 'cursor-pointer' : 'cursor-not-allowed'} transition-all hover:scale-105`}
+                >
+                  <span className="text-xs font-bold">{mesa.nombre}</span>
+                  <span className="text-[10px]">{mesa.capacidad} personas</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -168,16 +187,19 @@ const TableMap: React.FC<TableMapProps> = ({ mesas, selectedMesa, onSelectMesa }
         <div className="absolute top-[10%] right-[10%] w-[25%] h-[35%] border border-dashed border-gray-600 rounded-lg p-2">
           <div className="text-xs text-gray-400 mb-2">Área Silver</div>
           <div className="flex flex-wrap gap-2 justify-around">
-            {tablesByCategory['silver']?.map(mesa => (
-              <div 
-                key={mesa.id}
-                onClick={() => mesa.disponible && onSelectMesa(mesa)}
-                className={`w-[45%] h-10 ${getTableColor('silver', selectedMesa?.id === mesa.id, mesa.disponible)} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105`}
-              >
-                <span className="text-xs font-bold">{mesa.nombre}</span>
-                <span className="text-[10px]">{mesa.capacidad} personas</span>
-              </div>
-            ))}
+            {tablesByCategory['silver']?.map(mesa => {
+              const isSelectable = isMesaSelectable(mesa);
+              return (
+                <div 
+                  key={mesa.id}
+                  onClick={() => isSelectable && onSelectMesa(mesa)}
+                  className={`w-[45%] h-10 ${getTableColor('silver', selectedMesa?.id === mesa.id, isSelectable)} rounded-lg flex flex-col items-center justify-center ${isSelectable ? 'cursor-pointer' : 'cursor-not-allowed'} transition-all hover:scale-105`}
+                >
+                  <span className="text-xs font-bold">{mesa.nombre}</span>
+                  <span className="text-[10px]">{mesa.capacidad} personas</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -185,16 +207,19 @@ const TableMap: React.FC<TableMapProps> = ({ mesas, selectedMesa, onSelectMesa }
         <div className="absolute bottom-[10%] left-[5%] w-[30%] h-[30%] border border-dashed border-gray-600 rounded-lg p-2">
           <div className="text-xs text-gray-400 mb-2">Área Bronze</div>
           <div className="flex flex-wrap gap-2 justify-around">
-            {tablesByCategory['bronze']?.map(mesa => (
-              <div 
-                key={mesa.id}
-                onClick={() => mesa.disponible && onSelectMesa(mesa)}
-                className={`w-[45%] h-10 ${getTableColor('bronze', selectedMesa?.id === mesa.id, mesa.disponible)} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105`}
-              >
-                <span className="text-xs font-bold">{mesa.nombre}</span>
-                <span className="text-[10px]">{mesa.capacidad} personas</span>
-              </div>
-            ))}
+            {tablesByCategory['bronze']?.map(mesa => {
+              const isSelectable = isMesaSelectable(mesa);
+              return (
+                <div 
+                  key={mesa.id}
+                  onClick={() => isSelectable && onSelectMesa(mesa)}
+                  className={`w-[45%] h-10 ${getTableColor('bronze', selectedMesa?.id === mesa.id, isSelectable)} rounded-lg flex flex-col items-center justify-center ${isSelectable ? 'cursor-pointer' : 'cursor-not-allowed'} transition-all hover:scale-105`}
+                >
+                  <span className="text-xs font-bold">{mesa.nombre}</span>
+                  <span className="text-[10px]">{mesa.capacidad} personas</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -202,16 +227,19 @@ const TableMap: React.FC<TableMapProps> = ({ mesas, selectedMesa, onSelectMesa }
         <div className="absolute bottom-[10%] right-[5%] w-[30%] h-[30%] border border-dashed border-gray-600 rounded-lg p-2">
           <div className="text-xs text-gray-400 mb-2">Área Purple</div>
           <div className="flex flex-wrap gap-2 justify-around">
-            {tablesByCategory['purple']?.map(mesa => (
-              <div 
-                key={mesa.id}
-                onClick={() => mesa.disponible && onSelectMesa(mesa)}
-                className={`w-[45%] h-10 ${getTableColor('purple', selectedMesa?.id === mesa.id, mesa.disponible)} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105`}
-              >
-                <span className="text-xs font-bold">{mesa.nombre}</span>
-                <span className="text-[10px]">{mesa.capacidad} personas</span>
-              </div>
-            ))}
+            {tablesByCategory['purple']?.map(mesa => {
+              const isSelectable = isMesaSelectable(mesa);
+              return (
+                <div 
+                  key={mesa.id}
+                  onClick={() => isSelectable && onSelectMesa(mesa)}
+                  className={`w-[45%] h-10 ${getTableColor('purple', selectedMesa?.id === mesa.id, isSelectable)} rounded-lg flex flex-col items-center justify-center ${isSelectable ? 'cursor-pointer' : 'cursor-not-allowed'} transition-all hover:scale-105`}
+                >
+                  <span className="text-xs font-bold">{mesa.nombre}</span>
+                  <span className="text-[10px]">{mesa.capacidad} personas</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -219,16 +247,19 @@ const TableMap: React.FC<TableMapProps> = ({ mesas, selectedMesa, onSelectMesa }
         <div className="absolute top-[50%] left-[20%] w-[15%] h-[25%] border border-dashed border-gray-600 rounded-lg p-2">
           <div className="text-xs text-gray-400 mb-2">Área Red</div>
           <div className="flex flex-wrap gap-2 justify-around">
-            {tablesByCategory['red']?.map(mesa => (
-              <div 
-                key={mesa.id}
-                onClick={() => mesa.disponible && onSelectMesa(mesa)}
-                className={`w-full h-10 ${getTableColor('red', selectedMesa?.id === mesa.id, mesa.disponible)} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105`}
-              >
-                <span className="text-xs font-bold">{mesa.nombre}</span>
-                <span className="text-[10px]">{mesa.capacidad} personas</span>
-              </div>
-            ))}
+            {tablesByCategory['red']?.map(mesa => {
+              const isSelectable = isMesaSelectable(mesa);
+              return (
+                <div 
+                  key={mesa.id}
+                  onClick={() => isSelectable && onSelectMesa(mesa)}
+                  className={`w-full h-10 ${getTableColor('red', selectedMesa?.id === mesa.id, isSelectable)} rounded-lg flex flex-col items-center justify-center ${isSelectable ? 'cursor-pointer' : 'cursor-not-allowed'} transition-all hover:scale-105`}
+                >
+                  <span className="text-xs font-bold">{mesa.nombre}</span>
+                  <span className="text-[10px]">{mesa.capacidad} personas</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
