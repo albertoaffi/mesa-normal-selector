@@ -58,11 +58,26 @@ const AdminTableMap: React.FC<AdminTableMapProps> = ({ tables, backgroundImage, 
     // Find the table and update it
     const table = tables.find(t => t.id === id);
     if (table) {
-      onUpdateTable({
+      const updatedTable = {
         ...table,
         x: data.x,
         y: data.y
-      });
+      };
+      
+      onUpdateTable(updatedTable);
+      
+      // Update activeTemplate in localStorage to reflect these changes
+      const activeTemplate = JSON.parse(localStorage.getItem('activeTemplate') || '{}');
+      const updatedTables = activeTemplate.tables?.map((t: Table) => 
+        t.id === id ? { ...t, x: data.x, y: data.y } : t
+      ) || [];
+      
+      localStorage.setItem('activeTemplate', JSON.stringify({
+        ...activeTemplate,
+        tables: updatedTables.length > 0 ? updatedTables : tables.map(t => 
+          t.id === id ? { ...t, x: data.x, y: data.y } : t
+        )
+      }));
     }
   };
 

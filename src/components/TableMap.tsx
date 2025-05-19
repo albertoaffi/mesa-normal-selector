@@ -30,10 +30,10 @@ const TableMap: React.FC<TableMapProps> = ({ mesas, selectedMesa, onSelectMesa, 
           const positions: {[key: number]: {x: number, y: number}} = {};
           
           template.tables.forEach((table: any) => {
-            // Match saved tables with current mesas by name
+            // Match saved tables with current mesas by ID or name
             const matchingMesa = mesas.find(mesa => 
-              mesa.nombre === table.nombre || 
-              mesa.categoria === table.categoria
+              mesa.id === table.id || 
+              mesa.nombre === table.nombre
             );
             
             if (matchingMesa && table.x !== undefined && table.y !== undefined) {
@@ -95,15 +95,6 @@ const TableMap: React.FC<TableMapProps> = ({ mesas, selectedMesa, onSelectMesa, 
     
     return true;
   };
-
-  console.log("Mesa disponibilidad:", mesas.map(m => ({ 
-    id: m.id, 
-    nombre: m.nombre, 
-    disponible: m.disponible, 
-    categoria: m.categoria,
-    seleccionable: isMesaSelectable(m),
-    tieneCodigoVIP
-  })));
 
   // If we have a saved background and positions, use those
   if (backgroundImage && Object.keys(tablePositions).length > 0) {
