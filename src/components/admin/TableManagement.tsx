@@ -349,7 +349,7 @@ const TableManagement = () => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">Gestión de Mesas</h2>
           <div className="flex gap-2">
-            <Button onClick={() => setSaveTemplateDialog(true)} variant="outline">
+            <Button onClick={() => setSaveTemplateDialog(true)} variant="outline" className="text-gray-950">
               <Save className="mr-2 h-4 w-4" />
               Guardar Plantilla
             </Button>
@@ -357,7 +357,7 @@ const TableManagement = () => {
               <Plus className="mr-2 h-4 w-4" />
               Añadir Rápido
             </Button>
-            <Button onClick={() => setShowForm(!showForm)}>
+            <Button onClick={() => setShowForm(!showForm)} className="text-zinc-950">
               <Plus className="mr-2 h-4 w-4" />
               Mesa Personalizada
             </Button>
