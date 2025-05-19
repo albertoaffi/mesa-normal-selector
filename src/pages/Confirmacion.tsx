@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -24,95 +25,152 @@ const PrintableTicket = ({ reservaData }: { reservaData: any }) => {
   
   return (
     <div className="hidden print:block print:p-0 print:m-0 print:bg-white print:text-black">
-      <div className="p-8 max-w-[800px] mx-auto">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold">THE NORMAL CLUB</h1>
-          <p className="text-lg">Confirmación de reserva</p>
+      <div className="max-w-[800px] mx-auto p-8 relative overflow-hidden">
+        {/* Background gradient */}
+        <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-amber-600/10 to-amber-400/5 z-0"></div>
+        
+        {/* Corner decoration */}
+        <div className="absolute top-0 right-0 w-24 h-24 border-t-4 border-r-4 border-amber-400/30"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 border-b-4 border-l-4 border-amber-400/30"></div>
+        
+        {/* Logo and header section */}
+        <div className="relative z-10 text-center mb-8 border-b-2 border-amber-400/30 pb-6">
+          <h1 className="text-4xl font-bold tracking-tight relative inline-block">
+            THE NORMAL CLUB
+            <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-amber-600 to-amber-400"></div>
+          </h1>
+          <p className="text-lg mt-2 text-gray-600 font-light">CONFIRMACIÓN DE RESERVA</p>
         </div>
         
-        <div className="flex justify-between mb-6">
-          <div>
-            <h2 className="font-bold">Detalles del cliente</h2>
-            <p>Nombre: {nombre}</p>
-            <p>Fecha: {formatDate(fecha)}</p>
+        {/* Info sections */}
+        <div className="relative z-10 flex justify-between mb-6">
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm w-[48%]">
+            <h2 className="font-bold text-lg border-b border-gray-200 pb-2 mb-2">Detalles del Cliente</h2>
+            <p className="flex justify-between py-1">
+              <span className="text-gray-600">Nombre:</span> 
+              <span className="font-medium">{nombre}</span>
+            </p>
+            <p className="flex justify-between py-1">
+              <span className="text-gray-600">Fecha:</span> 
+              <span className="font-medium">{formatDate(fecha)}</span>
+            </p>
           </div>
-          <div className="text-right">
-            <h2 className="font-bold">Referencia</h2>
-            <p>#{Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}</p>
-            <p>{new Date().toLocaleDateString()}</p>
+          
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm w-[48%] text-right">
+            <h2 className="font-bold text-lg border-b border-gray-200 pb-2 mb-2">Referencia</h2>
+            <p className="flex justify-between py-1">
+              <span className="text-gray-600">Código:</span>
+              <span className="font-medium">#{Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}</span>
+            </p>
+            <p className="flex justify-between py-1">
+              <span className="text-gray-600">Emitido:</span>
+              <span className="font-medium">{new Date().toLocaleDateString()}</span>
+            </p>
           </div>
         </div>
         
-        <div className="mb-6">
-          <h2 className="font-bold mb-2">Mesa reservada</h2>
-          <div className="border p-4 rounded">
-            <p className="font-medium">{mesa.nombre}</p>
-            <p>Capacidad: {mesa.capacidad} personas</p>
-            <p>Ubicación: {mesa.ubicacion}</p>
+        {/* Mesa reservada */}
+        <div className="relative z-10 mb-6">
+          <h2 className="font-bold text-xl border-b border-amber-400/30 pb-2 mb-4">Mesa Reservada</h2>
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="font-bold text-lg">{mesa.nombre}</p>
+                <p className="text-gray-600">Capacidad: {mesa.capacidad} personas</p>
+                <p className="text-gray-600">Ubicación: {mesa.ubicacion}</p>
+              </div>
+              <div className="w-16 h-16 rounded-full flex items-center justify-center bg-amber-100 border-2 border-amber-400/30">
+                <span className="font-bold text-amber-800">{mesa.capacidad}</span>
+              </div>
+            </div>
           </div>
         </div>
         
-        <div className="mb-6">
-          <h2 className="font-bold mb-2">Productos seleccionados</h2>
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left py-2">Producto</th>
-                <th className="text-center py-2">Cantidad</th>
-                <th className="text-center py-2">Precio</th>
-                <th className="text-right py-2">Total</th>
+        {/* Productos seleccionados */}
+        <div className="relative z-10 mb-6">
+          <h2 className="font-bold text-xl border-b border-amber-400/30 pb-2 mb-4">Productos Seleccionados</h2>
+          <table className="w-full border-collapse bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+            <thead className="bg-amber-50">
+              <tr>
+                <th className="text-left py-3 px-4 font-bold border-b-2 border-amber-200">Producto</th>
+                <th className="text-center py-3 px-4 font-bold border-b-2 border-amber-200">Cantidad</th>
+                <th className="text-center py-3 px-4 font-bold border-b-2 border-amber-200">Precio</th>
+                <th className="text-right py-3 px-4 font-bold border-b-2 border-amber-200">Total</th>
               </tr>
             </thead>
             <tbody>
-              {productos.map((producto: any) => (
-                <tr key={producto.id} className="border-b">
-                  <td className="py-2">{producto.nombre}</td>
-                  <td className="text-center py-2">{producto.cantidad}</td>
-                  <td className="text-center py-2">${producto.precio}</td>
-                  <td className="text-right py-2">${producto.precio * producto.cantidad}</td>
+              {productos.map((producto: any, index: number) => (
+                <tr key={producto.id} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+                  <td className="py-3 px-4 border-b border-gray-200">{producto.nombre}</td>
+                  <td className="text-center py-3 px-4 border-b border-gray-200">{producto.cantidad}</td>
+                  <td className="text-center py-3 px-4 border-b border-gray-200">${producto.precio}</td>
+                  <td className="text-right py-3 px-4 border-b border-gray-200">${producto.precio * producto.cantidad}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr>
-                <td colSpan={3} className="text-right pt-4 font-bold">Total:</td>
-                <td className="text-right pt-4 font-bold">${total}</td>
+              <tr className="bg-amber-50">
+                <td colSpan={3} className="text-right pt-4 pb-4 px-4 font-bold">Total:</td>
+                <td className="text-right pt-4 pb-4 px-4 font-bold">${total}</td>
               </tr>
             </tfoot>
           </table>
         </div>
         
-        <div className="mb-6">
-          <h2 className="font-bold mb-2">Información importante</h2>
-          <ul className="list-disc pl-5">
-            <li>Llega 15 minutos antes para agilizar tu ingreso</li>
-            <li>Presenta esta confirmación de reserva al llegar</li>
-            <li>La reserva es válida hasta 1 hora después de la apertura</li>
-            <li>Tus productos estarán listos en tu mesa al llegar</li>
+        {/* Información importante */}
+        <div className="relative z-10 mb-10 bg-amber-50 p-5 rounded-lg border border-amber-200/50">
+          <h2 className="font-bold text-xl mb-3">Información Importante</h2>
+          <ul className="space-y-2">
+            <li className="flex items-start">
+              <div className="h-5 w-5 rounded-full bg-amber-200 flex items-center justify-center mr-2 mt-0.5 text-amber-800 font-bold text-xs">1</div>
+              <p>Llega 15 minutos antes para agilizar tu ingreso</p>
+            </li>
+            <li className="flex items-start">
+              <div className="h-5 w-5 rounded-full bg-amber-200 flex items-center justify-center mr-2 mt-0.5 text-amber-800 font-bold text-xs">2</div>
+              <p>Presenta esta confirmación de reserva al llegar</p>
+            </li>
+            <li className="flex items-start">
+              <div className="h-5 w-5 rounded-full bg-amber-200 flex items-center justify-center mr-2 mt-0.5 text-amber-800 font-bold text-xs">3</div>
+              <p>La reserva es válida hasta 1 hora después de la apertura</p>
+            </li>
+            <li className="flex items-start">
+              <div className="h-5 w-5 rounded-full bg-amber-200 flex items-center justify-center mr-2 mt-0.5 text-amber-800 font-bold text-xs">4</div>
+              <p>Tus productos estarán listos en tu mesa al llegar</p>
+            </li>
           </ul>
         </div>
         
-        <div className="text-center mt-8">
-          <p>¡Gracias por tu reserva en THE NORMAL CLUB!</p>
-          <p className="text-sm">Av. Ejemplo 123, Ciudad, CP 12345</p>
-          <p className="text-sm">Tel: (555) 123-4567 | info@thenormalclub.com</p>
-        </div>
-        
-        <div className="text-center mt-6">
-          <svg
-            className="mx-auto h-12 w-12"
-            viewBox="0 0 100 100"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect x="10" y="10" width="80" height="80" rx="10" fill="black" />
-            <path
-              d="M30 50H70M50 30V70"
-              stroke="white"
-              strokeWidth="8"
-              strokeLinecap="round"
-            />
-          </svg>
+        {/* Footer */}
+        <div className="relative z-10 text-center border-t-2 border-amber-400/30 pt-6">
+          <p className="font-bold text-lg">¡Gracias por tu reserva en THE NORMAL CLUB!</p>
+          <div className="mt-2 text-gray-600">
+            <p>Av. Ejemplo 123, Ciudad, CP 12345</p>
+            <p>Tel: (555) 123-4567 | info@thenormalclub.com</p>
+          </div>
+          
+          <div className="mt-6 flex justify-center">
+            <svg
+              className="h-20 w-20"
+              viewBox="0 0 100 100"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Stylized QR code */}
+              <rect x="10" y="10" width="80" height="80" rx="10" stroke="#D4AF37" strokeWidth="2" fill="none" />
+              <rect x="20" y="20" width="60" height="60" rx="5" fill="#000" />
+              <path
+                d="M30 50H70M50 30V70"
+                stroke="white"
+                strokeWidth="8"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+          
+          {/* Decorative line */}
+          <div className="mt-4 flex justify-center">
+            <div className="w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-600 rounded-full"></div>
+          </div>
         </div>
       </div>
     </div>

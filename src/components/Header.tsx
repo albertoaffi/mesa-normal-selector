@@ -37,7 +37,7 @@ const Header: React.FC = () => {
           <li>
             <Button 
               onClick={() => navigate('/contacto')}
-              variant="glass"
+              variant="glossy"
               className="transition-all"
             >
               Contacto
