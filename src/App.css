@@ -63,3 +63,69 @@
 .react-calendar__month-view__days__day--weekend {
   color: #ff8a8a;
 }
+
+/* Admin panel text color fixes */
+.text-high-contrast {
+  color: #000000;
+}
+
+.dark .text-high-contrast {
+  color: #FFFFFF;
+}
+
+/* Status indicator colors for better contrast */
+.status-confirmed {
+  background-color: rgba(0, 128, 0, 0.2);
+  color: #00c853;
+}
+
+.status-pending {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #ffab00;
+}
+
+.status-cancelled {
+  background-color: rgba(244, 67, 54, 0.2);
+  color: #ff5252;
+}
+
+/* Override Tailwind text colors for better contrast */
+.dark button.text-muted-foreground,
+.dark .text-muted-foreground {
+  color: #a3a3a3 !important;
+}
+
+button.text-muted-foreground,
+.text-muted-foreground {
+  color: #6b7280 !important;
+}
+
+/* Ensure high contrast for buttons */
+button.hover\:bg-accent:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark button.hover\:bg-accent:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Fix dialog and dropdown menu contrast */
+.dark [data-radix-popper-content-wrapper] {
+  background-color: #2a2a2a;
+  color: #ffffff;
+}
+
+/* Improve contrast for form elements */
+.dark input, 
+.dark select, 
+.dark textarea {
+  background-color: #333333;
+  color: #ffffff;
+  border-color: #555555;
+}
+
+input, 
+select, 
+textarea {
+  color: #333333;
+}

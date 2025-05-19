@@ -13,31 +13,49 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8 text-center text-high-contrast">Panel de Administración</h1>
+        <h1 className="text-3xl font-bold mb-8 text-center text-gray-900 dark:text-white">Panel de Administración</h1>
         
         <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-8">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2 text-high-contrast">
+          <TabsList className="grid w-full grid-cols-6 mb-8 bg-gray-100 dark:bg-gray-800">
+            <TabsTrigger 
+              value="dashboard" 
+              className="flex items-center gap-2 text-gray-700 dark:text-gray-100 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white"
+            >
               <LayoutDashboard className="w-4 h-4" />
               <span className="hidden sm:inline">Dashboard</span>
             </TabsTrigger>
-            <TabsTrigger value="tables" className="flex items-center gap-2 text-high-contrast">
+            <TabsTrigger 
+              value="tables" 
+              className="flex items-center gap-2 text-gray-700 dark:text-gray-100 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white"
+            >
               <Table className="w-4 h-4" />
               <span className="hidden sm:inline">Mesas</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2 text-high-contrast">
+            <TabsTrigger 
+              value="users" 
+              className="flex items-center gap-2 text-gray-700 dark:text-gray-100 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white"
+            >
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Usuarios</span>
             </TabsTrigger>
-            <TabsTrigger value="products" className="flex items-center gap-2 text-high-contrast">
+            <TabsTrigger 
+              value="products" 
+              className="flex items-center gap-2 text-gray-700 dark:text-gray-100 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white"
+            >
               <Package className="w-4 h-4" />
               <span className="hidden sm:inline">Productos</span>
             </TabsTrigger>
-            <TabsTrigger value="guestlist" className="flex items-center gap-2 text-high-contrast">
+            <TabsTrigger 
+              value="guestlist" 
+              className="flex items-center gap-2 text-gray-700 dark:text-gray-100 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white"
+            >
               <Ticket className="w-4 h-4" />
               <span className="hidden sm:inline">Guest List</span>
             </TabsTrigger>
-            <TabsTrigger value="vipcodes" className="flex items-center gap-2 text-high-contrast">
+            <TabsTrigger 
+              value="vipcodes" 
+              className="flex items-center gap-2 text-gray-700 dark:text-gray-100 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white"
+            >
               <Key className="w-4 h-4" />
               <span className="hidden sm:inline">Códigos VIP</span>
             </TabsTrigger>
