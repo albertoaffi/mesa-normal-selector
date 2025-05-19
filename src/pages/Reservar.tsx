@@ -50,11 +50,9 @@ const Reservar = () => {
                   />
                 </div>
 
-                {/* Selección de hora y personas */}
+                {/* Selección de personas y código VIP */}
                 <div className="lg:col-span-2">
                   <ReservaDetalles
-                    hora={reserva.hora}
-                    setHora={reserva.setHora}
                     personas={reserva.personas}
                     setPersonas={reserva.setPersonas}
                     codigoVIP={reserva.codigoVIP}
@@ -62,7 +60,6 @@ const Reservar = () => {
                     tieneCodigoVIP={reserva.tieneCodigoVIP}
                     validarCodigoVIP={reserva.validarCodigoVIP}
                     tieneMesasPremiumAccesibles={reserva.tieneMesasPremiumAccesibles}
-                    horariosDisponibles={reserva.horariosDisponibles}
                   />
                 </div>
               </div>

@@ -22,7 +22,7 @@ const ReservaCalendario: React.FC<ReservaCalendarioProps> = ({
   setFecha,
   eventosEspeciales
 }) => {
-  // Filter out past dates and limit to next 30 days
+  // Filter out past dates, limit to next 30 days, and block Sunday(0), Monday(1), Tuesday(2), Wednesday(3)
   const today = new Date();
   const maxDate = new Date();
   maxDate.setDate(today.getDate() + 30);
@@ -46,7 +46,11 @@ const ReservaCalendario: React.FC<ReservaCalendarioProps> = ({
           mode="single"
           selected={fecha}
           onSelect={setFecha}
-          disabled={(date) => date < today || date > maxDate}
+          disabled={(date) => 
+            date < today || 
+            date > maxDate || 
+            [0, 1, 2, 3].includes(date.getDay()) // Block Sunday(0), Monday(1), Tuesday(2), Wednesday(3)
+          }
           modifiers={{
             event: eventDays
           }}
@@ -80,6 +84,9 @@ const ReservaCalendario: React.FC<ReservaCalendarioProps> = ({
           <p className="text-sm text-muted-foreground flex items-center gap-1 mb-1">
             <span className="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
             Eventos especiales
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Abierto solo jueves, viernes y sábado
           </p>
         </div>
       </CardContent>

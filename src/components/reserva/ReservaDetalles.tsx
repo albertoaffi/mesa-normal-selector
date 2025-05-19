@@ -8,8 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 interface ReservaDetallesProps {
-  hora: string;
-  setHora: (hora: string) => void;
   personas: string;
   setPersonas: (personas: string) => void;
   codigoVIP: string;
@@ -17,47 +15,27 @@ interface ReservaDetallesProps {
   tieneCodigoVIP: boolean;
   validarCodigoVIP: () => void;
   tieneMesasPremiumAccesibles: boolean;
-  horariosDisponibles: string[];
 }
 
 const ReservaDetalles: React.FC<ReservaDetallesProps> = ({
-  hora,
-  setHora,
   personas,
   setPersonas,
   codigoVIP,
   setCodigoVIP,
   tieneCodigoVIP,
   validarCodigoVIP,
-  tieneMesasPremiumAccesibles,
-  horariosDisponibles
+  tieneMesasPremiumAccesibles
 }) => {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Detalles de la reserva</CardTitle>
         <CardDescription>
-          Selecciona la hora y el número de personas
+          Selecciona el número de personas y tu código VIP
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="hora">Hora de llegada</Label>
-            <Select value={hora} onValueChange={setHora}>
-              <SelectTrigger id="hora">
-                <SelectValue placeholder="Selecciona una hora" />
-              </SelectTrigger>
-              <SelectContent>
-                {horariosDisponibles.map((horario) => (
-                  <SelectItem key={horario} value={horario}>
-                    {horario}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
+        <div className="grid gap-4">
           <div className="space-y-2">
             <Label htmlFor="personas">Número de personas</Label>
             <Select value={personas} onValueChange={setPersonas}>
@@ -74,10 +52,11 @@ const ReservaDetalles: React.FC<ReservaDetallesProps> = ({
             </Select>
           </div>
           
-          <div className="md:col-span-2 pt-2">
-            <Label>¿Tienes un código VIP?</Label>
+          <div className="pt-2">
+            <Label htmlFor="codigoVIP">Código VIP para mesas Gold</Label>
             <div className="flex gap-2 mt-2">
               <Input
+                id="codigoVIP"
                 placeholder="Ingresa tu código VIP"
                 value={codigoVIP}
                 onChange={(e) => setCodigoVIP(e.target.value)}
@@ -90,13 +69,13 @@ const ReservaDetalles: React.FC<ReservaDetallesProps> = ({
             
             {tieneCodigoVIP && (
               <p className="text-sm text-green-500 mt-2 flex items-center">
-                <CheckCircle className="h-4 w-4 mr-1" /> Código VIP válido. Tienes acceso a mesas premium.
+                <CheckCircle className="h-4 w-4 mr-1" /> Código VIP válido. Tienes acceso a mesas Gold.
               </p>
             )}
             
             {!tieneCodigoVIP && !tieneMesasPremiumAccesibles && (
               <p className="text-sm text-amber-500 mt-2 flex items-center">
-                <AlertCircle className="h-4 w-4 mr-1" /> Las mesas Gold solo están disponibles con reserva anticipada o código VIP.
+                <AlertCircle className="h-4 w-4 mr-1" /> Las mesas Gold solo están disponibles con código VIP.
               </p>
             )}
             
