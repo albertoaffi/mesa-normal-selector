@@ -89,12 +89,21 @@ const TableMap: React.FC<TableMapProps> = ({ mesas, selectedMesa, onSelectMesa, 
     if (!mesa.disponible) return false;
     
     // Si es una mesa Gold, solo se puede seleccionar si tiene código VIP
-    if ((mesa.categoria === 'gold') && !tieneCodigoVIP) {
+    if (mesa.categoria === 'gold' && !tieneCodigoVIP) {
       return false;
     }
     
     return true;
   };
+
+  console.log("Mesa disponibilidad:", mesas.map(m => ({ 
+    id: m.id, 
+    nombre: m.nombre, 
+    disponible: m.disponible, 
+    categoria: m.categoria,
+    seleccionable: isMesaSelectable(m),
+    tieneCodigoVIP
+  })));
 
   // If we have a saved background and positions, use those
   if (backgroundImage && Object.keys(tablePositions).length > 0) {

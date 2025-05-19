@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { Mesa } from '@/components/MesaCard';
@@ -146,7 +147,7 @@ const eventosEspeciales = [
 const horariosDisponibles = ['21:00', '22:00', '23:00', '00:00'];
 
 // Función para verificar si una mesa está disponible para una fecha específica (simulado)
-const checkMesaDisponibilidad = (mesaId: number, fecha: Date): { disponible: boolean, motivo?: string } => {
+const checkMesaDisponibilidad = (mesaId: number, fecha: Date, tieneCodigoVIP: boolean): { disponible: boolean, motivo?: string } => {
   // Simulamos que algunas mesas no están disponibles en fechas específicas
   if (mesaId === 1 && fecha.getDate() === 25 && fecha.getMonth() === 4) {
     return { disponible: false, motivo: "Reservada para evento privado" };
@@ -157,7 +158,7 @@ const checkMesaDisponibilidad = (mesaId: number, fecha: Date): { disponible: boo
   }
   
   // Mesas Gold solo disponibles con código VIP
-  if ((mesaId === 1 || mesaId === 2)) {
+  if ((mesaId === 1 || mesaId === 2) && !tieneCodigoVIP) {
     return { disponible: false, motivo: "Mesa Gold solo disponible con código VIP" };
   }
   
@@ -185,16 +186,9 @@ export const useReserva = () => {
     if (fecha) {
       // Filtramos las mesas según su disponibilidad para la fecha seleccionada
       const mesasActualizadas = mesas.map(mesa => {
-        // Si es una mesa Gold y el usuario no tiene código VIP, no estará disponible
-        if ((mesa.id === 1 || mesa.id === 2) && !tieneCodigoVIP) {
-          return { 
-            ...mesa, 
-            disponible: false,
-            descripcion: "Mesa Gold solo disponible con código VIP"
-          };
-        }
+        // Verificamos disponibilidad de la mesa
+        const { disponible, motivo } = checkMesaDisponibilidad(mesa.id, fecha, tieneCodigoVIP);
         
-        const { disponible, motivo } = checkMesaDisponibilidad(mesa.id, fecha);
         return { 
           ...mesa, 
           disponible,
@@ -260,7 +254,7 @@ export const useReserva = () => {
     }
     
     // Si es una mesa Gold pero no tiene código VIP, mostrar alerta
-    if ((mesa.id === 1 || mesa.id === 2) && !tieneCodigoVIP) {
+    if (mesa.categoria === 'gold' && !tieneCodigoVIP) {
       toast({
         title: "Mesa VIP restringida",
         description: "Esta mesa requiere un código VIP válido.",
@@ -313,19 +307,26 @@ export const useReserva = () => {
       });
       setTieneCodigoVIP(true);
       
-      // Actualizar disponibilidad de mesas Gold
+      // Actualizar disponibilidad de mesas Gold si hay una fecha seleccionada
       if (fecha) {
         const mesasActualizadas = mesasDisponiblesFecha.map(mesa => {
-          if (mesa.id === 1 || mesa.id === 2) {
+          if (mesa.categoria === 'gold') {
+            // Verificar si la mesa está disponible en esta fecha específica
+            const { disponible, motivo } = checkMesaDisponibilidad(mesa.id, fecha, true);
             return {
               ...mesa,
-              disponible: true,
-              descripcion: mesa.descripcion.replace("Mesa Gold solo disponible con código VIP", "Mesa premium con la mejor ubicación y vista panorámica.")
+              disponible,
+              descripcion: disponible 
+                ? "Mesa premium con la mejor ubicación y vista panorámica."
+                : `No disponible: ${motivo}`
             };
           }
           return mesa;
         });
+        
         setMesasDisponiblesFecha(mesasActualizadas);
+        
+        console.log("Mesas actualizadas después de código VIP:", mesasActualizadas);
       }
     } else {
       toast({
@@ -430,7 +431,7 @@ export const useReserva = () => {
     totalProductos,
     consumoMinimo: mesaSeleccionada?.precioMinimo || 0,
     consumoSuficiente: totalProductos >= (mesaSeleccionada?.precioMinimo || 0),
-    tieneMesasPremiumAccesibles,
+    tieneMesasPremiumAccesibles: tieneCodigoVIP,
     
     // Setters
     setFecha,
