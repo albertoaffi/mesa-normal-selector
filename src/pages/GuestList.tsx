@@ -42,7 +42,7 @@ const formSchema = z.object({
   date: z.date({
     required_error: "Por favor seleccione una fecha.",
   }),
-  guests: z.string().transform(val => parseInt(val, 10)).refine(val => val > 0 && val <= 10, {
+  guests: z.coerce.number().min(1).max(10, {
     message: "El número de invitados debe ser entre 1 y 10.",
   }),
 });
@@ -59,7 +59,7 @@ const GuestList = () => {
       name: "",
       email: "",
       phone: "",
-      guests: "1",
+      guests: 1,
     },
   });
 
@@ -94,7 +94,7 @@ const GuestList = () => {
             </div>
           </div>
 
-          <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-800">
+          <div className="bg-gray-900/50 backdrop-blur-xl rounded-lg p-6 border border-gray-800/80 shadow-lg">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
@@ -102,9 +102,13 @@ const GuestList = () => {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nombre completo</FormLabel>
+                      <FormLabel className="text-white/90">Nombre completo</FormLabel>
                       <FormControl>
-                        <Input placeholder="Tu nombre" {...field} />
+                        <Input 
+                          placeholder="Tu nombre" 
+                          {...field}
+                          className="bg-black/50 border-gray-700 focus:border-club-purple" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -117,9 +121,13 @@ const GuestList = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel className="text-white/90">Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="tu@email.com" {...field} />
+                          <Input 
+                            placeholder="tu@email.com" 
+                            {...field}
+                            className="bg-black/50 border-gray-700 focus:border-club-purple" 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -131,9 +139,13 @@ const GuestList = () => {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Teléfono</FormLabel>
+                        <FormLabel className="text-white/90">Teléfono</FormLabel>
                         <FormControl>
-                          <Input placeholder="Tu teléfono" {...field} />
+                          <Input 
+                            placeholder="Tu teléfono" 
+                            {...field}
+                            className="bg-black/50 border-gray-700 focus:border-club-purple" 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -147,12 +159,12 @@ const GuestList = () => {
                     name="date"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>¿Qué día quieres asistir?</FormLabel>
+                        <FormLabel className="text-white/90">¿Qué día quieres asistir?</FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                variant={"outline"}
+                                variant="glass"
                                 className={cn(
                                   "w-full pl-3 text-left font-normal",
                                   !field.value && "text-muted-foreground"
@@ -167,7 +179,7 @@ const GuestList = () => {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
+                          <PopoverContent className="w-auto p-0 bg-gray-900 border border-gray-800" align="start">
                             <Calendar
                               mode="single"
                               selected={field.value}
@@ -192,9 +204,15 @@ const GuestList = () => {
                     name="guests"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Número de personas</FormLabel>
+                        <FormLabel className="text-white/90">Número de personas</FormLabel>
                         <FormControl>
-                          <Input type="number" min="1" max="10" {...field} />
+                          <Input 
+                            type="number" 
+                            min="1" 
+                            max="10" 
+                            {...field}
+                            className="bg-black/50 border-gray-700 focus:border-club-purple"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -205,7 +223,7 @@ const GuestList = () => {
                 <div className="pt-4">
                   <Button 
                     type="submit" 
-                    className="w-full bg-club-purple hover:bg-opacity-90 text-white py-6 text-lg"
+                    className="w-full bg-club-purple hover:bg-club-purple/90 text-white py-6 text-lg shadow-lg shadow-club-purple/20 transition-all"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? "Enviando..." : "Unirme a la Guest List"}
@@ -215,14 +233,29 @@ const GuestList = () => {
             </Form>
           </div>
 
-          <div className="mt-8 p-4 bg-gray-900/30 border border-gray-800 rounded-lg">
+          <div className="mt-8 p-6 backdrop-blur-md bg-black/50 border border-gray-800/80 rounded-lg shadow-lg">
             <h3 className="text-xl font-semibold text-club-gold mb-3">Información importante:</h3>
             <ul className="space-y-2 text-gray-300">
-              <li>• Llegando antes de las 11:00 PM, tendrás <span className="font-bold">entrada gratuita</span>.</li>
-              <li>• Después de las 11:00 PM, aplicará el cover normal.</li>
-              <li>• Es indispensable presentar una identificación oficial.</li>
-              <li>• La lista solo aplica para las noches de jueves, viernes y sábado.</li>
-              <li>• El registro en la lista no garantiza el acceso si el lugar está a su máxima capacidad.</li>
+              <li className="flex items-start gap-2">
+                <span className="text-club-gold">•</span>
+                <span>Llegando antes de las 11:00 PM, tendrás <span className="font-bold text-white">entrada gratuita</span>.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-club-gold">•</span>
+                <span>Después de las 11:00 PM, aplicará el cover normal.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-club-gold">•</span>
+                <span>Es indispensable presentar una identificación oficial.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-club-gold">•</span>
+                <span>La lista solo aplica para las noches de jueves, viernes y sábado.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-club-gold">•</span>
+                <span>El registro en la lista no garantiza el acceso si el lugar está a su máxima capacidad.</span>
+              </li>
             </ul>
           </div>
         </div>

@@ -9,7 +9,7 @@ const Header: React.FC = () => {
   return (
     <header className="py-6 px-6 md:px-10 flex justify-between items-center backdrop-blur-lg bg-black/80 border-b border-white/10 sticky top-0 z-50">
       <div 
-        className="text-3xl md:text-4xl font-bold cursor-pointer bg-clip-text text-transparent bg-gold-gradient hover:opacity-80 transition-opacity"
+        className="text-3xl md:text-4xl font-bold cursor-pointer bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-amber-600 hover:opacity-80 transition-opacity"
         onClick={() => navigate('/')}
       >
         THE NORMAL
@@ -19,8 +19,8 @@ const Header: React.FC = () => {
           <li className="hidden md:block">
             <Button 
               onClick={() => navigate('/reservar')}
-              variant="outline"
-              className="border-club-gold/50 bg-black/50 text-club-gold hover:bg-club-gold/10 transition-all"
+              variant="gold"
+              className="transition-all"
             >
               Reservar Mesa
             </Button>
@@ -28,8 +28,8 @@ const Header: React.FC = () => {
           <li className="hidden md:block">
             <Button 
               onClick={() => navigate('/guest-list')}
-              variant="outline"
-              className="border-club-purple/50 bg-black/50 text-club-purple hover:bg-club-purple/10 transition-all"
+              variant="purple"
+              className="transition-all"
             >
               Guest List
             </Button>
@@ -37,8 +37,8 @@ const Header: React.FC = () => {
           <li>
             <Button 
               onClick={() => navigate('/contacto')}
-              variant="ghost"
-              className="text-white/70 hover:text-white hover:bg-white/5 transition-all"
+              variant="glass"
+              className="transition-all"
             >
               Contacto
             </Button>
