@@ -168,3 +168,59 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
+
+/* Improved text contrast styles */
+.text-high-contrast {
+  color: #FFFFFF !important;
+}
+
+.text-muted-contrast {
+  color: #B8B8B8 !important;
+}
+
+/* Ensure popover and dropdown menus have proper background */
+.popover-content, 
+[role="menu"],
+[role="listbox"],
+[data-radix-popper-content-wrapper] > * {
+  background-color: #1A1A1A !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Ensure calendar component's color contrast */
+.rdp-day_selected:not([aria-disabled="true"]) {
+  background-color: #d4af37 !important;
+  color: #000000 !important;
+  font-weight: bold;
+}
+
+.rdp-day:hover:not([aria-disabled="true"]) {
+  background-color: rgba(212, 175, 55, 0.3) !important;
+  color: #FFFFFF !important;
+}
+
+.rdp-day_disabled, 
+.rdp-day_outside {
+  opacity: 0.3;
+}
+
+.rdp-caption_label, 
+.rdp-head_cell {
+  color: #FFFFFF !important;
+}
+
+/* Table styles for better contrast */
+.table th {
+  color: #FFFFFF !important;
+  font-weight: 600;
+}
+
+.table td {
+  color: #E0E0E0 !important;
+}
+
+.table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.05);
+}

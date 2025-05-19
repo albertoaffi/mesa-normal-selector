@@ -33,11 +33,11 @@ const ReservaCalendario: React.FC<ReservaCalendarioProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-high-contrast">
           <CalendarIcon className="h-5 w-5" /> 
           Selecciona una fecha
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-muted-contrast">
           Reserva con hasta 30 días de anticipación
         </CardDescription>
       </CardHeader>
@@ -61,8 +61,16 @@ const ReservaCalendario: React.FC<ReservaCalendarioProps> = ({
               textDecoration: 'underline'
             }
           }}
-          className="p-0 pointer-events-auto border rounded-md"
+          className="p-0 pointer-events-auto border rounded-md bg-card text-foreground"
           locale={es}
+          classNames={{
+            day_selected: "bg-amber-500 text-black font-bold hover:bg-amber-400 hover:text-black",
+            day_today: "bg-muted text-muted-foreground border border-primary",
+            day: "text-foreground hover:bg-accent hover:text-accent-foreground",
+            head_cell: "text-muted-foreground",
+            caption: "text-foreground",
+            nav_button: "border border-input bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground",
+          }}
         />
         
         {eventosEspeciales.some(evento => 
@@ -71,7 +79,7 @@ const ReservaCalendario: React.FC<ReservaCalendarioProps> = ({
           <Alert className="mt-4 bg-amber-900/20 border-amber-900/30">
             <AlertCircle className="h-4 w-4 text-amber-400" />
             <AlertTitle className="text-amber-400">Evento especial</AlertTitle>
-            <AlertDescription>
+            <AlertDescription className="text-amber-100">
               {eventosEspeciales
                 .find(evento => fecha && evento.fecha.toDateString() === fecha.toDateString())
                 ?.descripcion
@@ -81,11 +89,11 @@ const ReservaCalendario: React.FC<ReservaCalendarioProps> = ({
         )}
         
         <div className="mt-4">
-          <p className="text-sm text-muted-foreground flex items-center gap-1 mb-1">
+          <p className="text-sm text-muted-contrast flex items-center gap-1 mb-1">
             <span className="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
             Eventos especiales
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-contrast">
             Abierto solo jueves, viernes y sábado
           </p>
         </div>

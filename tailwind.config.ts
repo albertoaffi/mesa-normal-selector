@@ -135,6 +135,10 @@ export default {
 				'pulse-glow': 'pulse-glow 2s infinite',
 				'fade-in': 'fade-in 0.5s ease-out',
 				'scale-in': 'scale-in 0.3s ease-out',
+			},
+			textColor: {
+				'high-contrast': '#FFFFFF',
+				'muted-contrast': '#B8B8B8',
 			}
 		}
 	},
