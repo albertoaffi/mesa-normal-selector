@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import RefundDialog from '@/components/RefundDialog';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const Home = () => {
             <p className="text-xl md:text-2xl text-white/90 mb-10 max-w-3xl mx-auto font-light">
               La mejor experiencia nocturna con reservas de mesa VIP y servicio personalizado
             </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-6">
               <Button 
                 variant="gold"
                 size="xl"
@@ -47,6 +48,9 @@ const Home = () => {
               >
                 Guest List
               </Button>
+            </div>
+            <div className="mt-4">
+              <RefundDialog />
             </div>
           </div>
         </section>
