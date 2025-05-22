@@ -9,6 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import { Check, Printer, CreditCard, ReceiptText, Loader2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
