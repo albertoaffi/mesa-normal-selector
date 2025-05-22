@@ -1,15 +1,15 @@
-
-import React, { useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Check, Printer, CreditCard, ReceiptText } from "lucide-react";
+import { Check, Printer, CreditCard, ReceiptText, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -287,29 +287,111 @@ const PaymentModal = ({ isOpen, onClose, onComplete, total }: { isOpen: boolean,
 const Confirmacion = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const reservaData = location.state;
   const printRef = useRef<HTMLDivElement>(null);
-  const [isPaid, setIsPaid] = React.useState(false);
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = React.useState(false);
+  const [isPaid, setIsPaid] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
+    // Check for successful payment and session ID
+    const success = searchParams.get('success');
+    const sessionId = searchParams.get('session_id');
+    const canceled = searchParams.get('canceled');
+    
+    if (success === 'true' && sessionId) {
+      setVerifyingPayment(true);
+      verifyPayment(sessionId);
+    } else if (canceled === 'true') {
+      toast({
+        title: "Pago cancelado",
+        description: "Has cancelado el proceso de pago. Puedes intentarlo más tarde.",
+        variant: "destructive",
+      });
+    }
+    
     if (!reservaData) {
       navigate('/reservar');
     }
-  }, [reservaData, navigate]);
+  }, [searchParams, reservaData, navigate]);
+
+  const verifyPayment = async (sessionId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-payment', {
+        body: {},
+        query: { session_id: sessionId }
+      });
+      
+      if (error) throw error;
+      
+      if (data.status === 'paid' || data.status === 'complete') {
+        setIsPaid(true);
+        toast({
+          title: "¡Pago exitoso!",
+          description: "Tu reserva ha sido confirmada y pagada.",
+        });
+      } else {
+        toast({
+          title: "Estado del pago",
+          description: `El estado de tu pago es: ${data.status}`,
+        });
+      }
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      toast({
+        title: "Error al verificar el pago",
+        description: "Hubo un problema al verificar el estado de tu pago.",
+        variant: "destructive",
+      });
+    } finally {
+      setVerifyingPayment(false);
+    }
+  };
 
   const handlePrint = () => {
     window.print();
   };
 
-  const handlePayment = () => {
-    setIsPaymentModalOpen(true);
-  };
-
-  const handlePaymentComplete = () => {
-    setIsPaymentModalOpen(false);
-    setIsPaid(true);
+  const handlePayment = async () => {
+    if (!reservaData) return;
+    
+    const { mesa, productos, fecha, nombre, total } = reservaData;
+    setIsLoading(true);
+    
+    try {
+      // Create a reservation ID
+      const reservationId = `RS${Math.floor(Math.random() * 10000).toString().padStart(5, '0')}`;
+      
+      // Call the create-checkout edge function
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          nombre,
+          reservationId,
+          total,
+          productos,
+          mesa,
+          fecha
+        }
+      });
+      
+      if (error) throw error;
+      
+      // Redirect to Stripe checkout
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Error creating checkout:', error);
+      toast({
+        title: "Error al procesar el pago",
+        description: "No se pudo iniciar el proceso de pago. Intenta de nuevo más tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!reservaData) {
@@ -423,14 +505,30 @@ const Confirmacion = () => {
                   <p className={`text-sm mt-1 ${isPaid ? 'text-green-400' : 'text-amber-400'}`}>
                     {isPaid ? 'Pagado correctamente' : 'Pendiente de pago'}
                   </p>
-                  {!isPaid && (
+                  {!isPaid && !verifyingPayment && (
                     <Button 
                       onClick={handlePayment} 
                       className="mt-3 w-full bg-club-gold text-black hover:bg-opacity-90"
+                      disabled={isLoading}
                     >
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Pagar ahora
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Procesando...
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          Pagar ahora
+                        </>
+                      )}
                     </Button>
+                  )}
+                  {verifyingPayment && (
+                    <div className="mt-3 flex items-center justify-center text-amber-400">
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Verificando pago...
+                    </div>
                   )}
                 </div>
                 

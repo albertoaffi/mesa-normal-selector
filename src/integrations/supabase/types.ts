@@ -9,7 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string | null
+          id: string
+          reservation_id: string | null
+          status: string | null
+          stripe_session_id: string | null
+          updated_at: string | null
+          user_name: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          reservation_id?: string | null
+          status?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string | null
+          user_name: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          reservation_id?: string | null
+          status?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string | null
+          user_name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
