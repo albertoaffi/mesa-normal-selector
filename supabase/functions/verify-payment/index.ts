@@ -19,15 +19,15 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    const url = new URL(req.url);
-    const sessionId = url.searchParams.get('session_id');
+    // Parse the request to get the session_id
+    const { session_id } = await req.json();
 
-    if (!sessionId) {
+    if (!session_id) {
       throw new Error('No session ID provided');
     }
 
     // Retrieve the session from Stripe
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await stripe.checkout.sessions.retrieve(session_id);
     
     // Create Supabase client for database operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -41,7 +41,7 @@ serve(async (req) => {
         status: session.payment_status,
         updated_at: new Date().toISOString()
       })
-      .eq('stripe_session_id', sessionId);
+      .eq('stripe_session_id', session_id);
 
     return new Response(
       JSON.stringify({ 

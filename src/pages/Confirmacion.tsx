@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -320,8 +321,7 @@ const Confirmacion = () => {
   const verifyPayment = async (sessionId: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('verify-payment', {
-        body: {},
-        query: { session_id: sessionId }
+        body: { session_id: sessionId }
       });
       
       if (error) throw error;
@@ -589,14 +589,6 @@ const Confirmacion = () => {
         <div ref={printRef}>
           <PrintableTicket reservaData={reservaData} />
         </div>
-        
-        {/* Modal de pago */}
-        <PaymentModal 
-          isOpen={isPaymentModalOpen} 
-          onClose={() => setIsPaymentModalOpen(false)} 
-          onComplete={handlePaymentComplete}
-          total={total}
-        />
       </main>
       
       <div className="print:hidden">
