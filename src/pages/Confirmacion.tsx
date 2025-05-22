@@ -6,10 +6,8 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Check, Printer, CreditCard, ReceiptText, Loader2 } from "lucide-react";
+import { Check, Printer, CreditCard, ReceiptText, Loader2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 
 const formatDate = (dateString: string) => {
@@ -294,6 +292,7 @@ const Confirmacion = () => {
   const [isPaid, setIsPaid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [verifyingPayment, setVerifyingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -328,6 +327,7 @@ const Confirmacion = () => {
       
       if (data.status === 'paid' || data.status === 'complete') {
         setIsPaid(true);
+        setPaymentError(null);
         toast({
           title: "¡Pago exitoso!",
           description: "Tu reserva ha sido confirmada y pagada.",
@@ -340,6 +340,7 @@ const Confirmacion = () => {
       }
     } catch (error) {
       console.error('Error verifying payment:', error);
+      setPaymentError('Hubo un problema al verificar el estado de tu pago.');
       toast({
         title: "Error al verificar el pago",
         description: "Hubo un problema al verificar el estado de tu pago.",
@@ -359,6 +360,7 @@ const Confirmacion = () => {
     
     const { mesa, productos, fecha, nombre, total } = reservaData;
     setIsLoading(true);
+    setPaymentError(null);
     
     try {
       // Create a reservation ID
@@ -376,17 +378,24 @@ const Confirmacion = () => {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating checkout:', error);
+        throw new Error(`Error al crear la sesión de pago: ${error.message}`);
+      }
       
       // Redirect to Stripe checkout
-      if (data.url) {
+      if (data && data.url) {
         window.location.href = data.url;
+      } else {
+        throw new Error('No se recibió la URL de pago.');
       }
     } catch (error) {
       console.error('Error creating checkout:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido al procesar el pago';
+      setPaymentError(errorMessage);
       toast({
         title: "Error al procesar el pago",
-        description: "No se pudo iniciar el proceso de pago. Intenta de nuevo más tarde.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -505,6 +514,21 @@ const Confirmacion = () => {
                   <p className={`text-sm mt-1 ${isPaid ? 'text-green-400' : 'text-amber-400'}`}>
                     {isPaid ? 'Pagado correctamente' : 'Pendiente de pago'}
                   </p>
+                  
+                  {paymentError && (
+                    <div className="mt-3 p-3 bg-red-900/20 border border-red-900/30 rounded-md">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 text-red-500" />
+                        <p className="text-sm text-red-400">
+                          {paymentError}
+                        </p>
+                      </div>
+                      <p className="text-xs text-red-400/70 mt-2">
+                        Por favor verifica que la clave de API de Stripe esté configurada correctamente.
+                      </p>
+                    </div>
+                  )}
+                  
                   {!isPaid && !verifyingPayment && (
                     <Button 
                       onClick={handlePayment} 
