@@ -20,6 +20,11 @@ serve(async (req) => {
       throw new Error('STRIPE_SECRET_KEY environment variable is not set');
     }
 
+    // Validate that we're using a secret key (starts with sk_)
+    if (!stripeSecretKey.startsWith('sk_')) {
+      throw new Error('Invalid Stripe key format. Must use a secret key (sk_)');
+    }
+
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2023-10-16',
     });
@@ -31,6 +36,8 @@ serve(async (req) => {
     const productNames = productos.map(p => `${p.nombre} x${p.cantidad}`).join(', ');
     const description = `Mesa: ${mesa.nombre}, Fecha: ${fecha}, Productos: ${productNames}`;
 
+    console.log('Creating Stripe checkout session...');
+    
     // Create a Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -51,6 +58,8 @@ serve(async (req) => {
       success_url: `${req.headers.get('origin')}/confirmacion?session_id={CHECKOUT_SESSION_ID}&success=true`,
       cancel_url: `${req.headers.get('origin')}/confirmacion?canceled=true`,
     });
+
+    console.log('Session created successfully:', session.id);
 
     // Create Supabase client for database operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -79,7 +88,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error creating checkout session:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: typeof error === 'object' ? JSON.stringify(error) : 'Unknown error'
+      }),
       { 
         headers: { 
           ...corsHeaders, 

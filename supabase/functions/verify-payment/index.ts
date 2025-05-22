@@ -20,12 +20,22 @@ serve(async (req) => {
       throw new Error('STRIPE_SECRET_KEY environment variable is not set');
     }
 
+    // Validate that we're using a secret key (starts with sk_)
+    if (!stripeSecretKey.startsWith('sk_')) {
+      throw new Error('Invalid Stripe key format. Must use a secret key (sk_)');
+    }
+
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2023-10-16',
     });
 
+    console.log('Verifying payment...');
+    
     // Parse the request to get the session_id
-    const { session_id } = await req.json();
+    const requestData = await req.json();
+    const { session_id } = requestData;
+
+    console.log('Session ID received:', session_id);
 
     if (!session_id) {
       throw new Error('No session ID provided');
@@ -33,6 +43,7 @@ serve(async (req) => {
 
     // Retrieve the session from Stripe
     const session = await stripe.checkout.sessions.retrieve(session_id);
+    console.log('Session retrieved:', session.id, 'Status:', session.payment_status);
     
     // Create Supabase client for database operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -65,7 +76,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error verifying payment:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: typeof error === 'object' ? JSON.stringify(error) : 'Unknown error'
+      }),
       { 
         headers: { 
           ...corsHeaders, 

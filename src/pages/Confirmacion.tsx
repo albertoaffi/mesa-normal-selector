@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -295,6 +294,7 @@ const Confirmacion = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [verifyingPayment, setVerifyingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [verificationAttempts, setVerificationAttempts] = useState(0); // Track verification attempts
   const { toast } = useToast();
 
   useEffect(() => {
@@ -303,6 +303,7 @@ const Confirmacion = () => {
     const sessionId = searchParams.get('session_id');
     const canceled = searchParams.get('canceled');
     
+    // Handle redirection after payment
     if (success === 'true' && sessionId) {
       setVerifyingPayment(true);
       verifyPayment(sessionId);
@@ -314,6 +315,7 @@ const Confirmacion = () => {
       });
     }
     
+    // Redirect if there's no reservation data
     if (!reservaData) {
       navigate('/reservar');
     }
@@ -321,11 +323,19 @@ const Confirmacion = () => {
 
   const verifyPayment = async (sessionId: string) => {
     try {
+      console.log('Verifying payment for session:', sessionId);
+      setVerificationAttempts(prev => prev + 1);
+      
       const { data, error } = await supabase.functions.invoke('verify-payment', {
         body: { session_id: sessionId }
       });
       
-      if (error) throw error;
+      console.log('Verification response:', data, error);
+      
+      if (error) {
+        console.error('Verification error:', error);
+        throw error;
+      }
       
       if (data.status === 'paid' || data.status === 'complete') {
         setIsPaid(true);
@@ -334,21 +344,32 @@ const Confirmacion = () => {
           title: "¡Pago exitoso!",
           description: "Tu reserva ha sido confirmada y pagada.",
         });
+      } else if (data.status === 'unpaid' && verificationAttempts < 3) {
+        // If still unpaid and under 3 attempts, try again after a delay
+        toast({
+          title: "Verificando pago...",
+          description: "El pago aún está siendo procesado. Verificando nuevamente en unos segundos.",
+        });
+        
+        setTimeout(() => {
+          verifyPayment(sessionId);
+        }, 3000);
       } else {
         toast({
           title: "Estado del pago",
           description: `El estado de tu pago es: ${data.status}`,
         });
+        setVerifyingPayment(false);
       }
     } catch (error) {
       console.error('Error verifying payment:', error);
-      setPaymentError('Hubo un problema al verificar el estado de tu pago.');
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      setPaymentError(errorMessage);
       toast({
         title: "Error al verificar el pago",
-        description: "Hubo un problema al verificar el estado de tu pago.",
+        description: errorMessage,
         variant: "destructive",
       });
-    } finally {
       setVerifyingPayment(false);
     }
   };
@@ -365,6 +386,7 @@ const Confirmacion = () => {
     setPaymentError(null);
     
     try {
+      console.log('Initiating payment process...');
       // Create a reservation ID
       const reservationId = `RS${Math.floor(Math.random() * 10000).toString().padStart(5, '0')}`;
       
@@ -380,6 +402,8 @@ const Confirmacion = () => {
         }
       });
       
+      console.log('Checkout response:', data, error);
+      
       if (error) {
         console.error('Error creating checkout:', error);
         throw new Error(`Error al crear la sesión de pago: ${error.message}`);
@@ -387,6 +411,7 @@ const Confirmacion = () => {
       
       // Redirect to Stripe checkout
       if (data && data.url) {
+        console.log('Redirecting to Stripe checkout:', data.url);
         window.location.href = data.url;
       } else {
         throw new Error('No se recibió la URL de pago.');
@@ -526,7 +551,7 @@ const Confirmacion = () => {
                         </p>
                       </div>
                       <p className="text-xs text-red-400/70 mt-2">
-                        Por favor verifica que la clave de API de Stripe esté configurada correctamente.
+                        Por favor verifica que la clave de API de Stripe esté configurada correctamente y sea una clave secreta (empieza con sk_).
                       </p>
                     </div>
                   )}
