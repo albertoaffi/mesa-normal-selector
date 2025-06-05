@@ -16,8 +16,8 @@ const Reservar = () => {
   const navigate = useNavigate();
   const reserva = useReserva();
 
-  const handleConfirmarReserva = () => {
-    const result = reserva.handleNextStep();
+  const handleConfirmarReserva = async () => {
+    const result = await reserva.handleNextStep();
     if (result.success && result.data) {
       navigate('/confirmacion', { state: result.data });
     }

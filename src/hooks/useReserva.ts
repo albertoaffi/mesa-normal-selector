@@ -279,7 +279,7 @@ export const useReserva = () => {
           description: "Debes seleccionar una fecha para continuar",
           variant: "destructive",
         });
-        return;
+        return { success: false };
       }
       
       if (!mesaSeleccionada) {
@@ -288,10 +288,11 @@ export const useReserva = () => {
           description: "Debes seleccionar una mesa para continuar",
           variant: "destructive",
         });
-        return;
+        return { success: false };
       }
       
       setPaso(2);
+      return { success: true };
     } else if (paso === 2) {
       if (!consumoSuficiente) {
         toast({
@@ -299,9 +300,10 @@ export const useReserva = () => {
           description: `Debes seleccionar productos por al menos $${consumoMinimo}`,
           variant: "destructive",
         });
-        return;
+        return { success: false };
       }
       setPaso(3);
+      return { success: true };
     } else if (paso === 3) {
       if (!nombre || !telefono || !email) {
         toast({
@@ -309,7 +311,7 @@ export const useReserva = () => {
           description: "Por favor completa todos los campos del formulario",
           variant: "destructive",
         });
-        return;
+        return { success: false };
       }
       
       try {
