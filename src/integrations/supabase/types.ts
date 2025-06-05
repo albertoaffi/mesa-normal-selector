@@ -9,6 +9,150 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          id: string
+          role: string | null
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          id?: string
+          role?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          id?: string
+          role?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      codigos_vip: {
+        Row: {
+          activo: boolean | null
+          codigo: string
+          created_at: string | null
+          descripcion: string | null
+          fecha_expiracion: string | null
+          id: string
+          updated_at: string | null
+          usos_actuales: number | null
+          usos_maximos: number | null
+        }
+        Insert: {
+          activo?: boolean | null
+          codigo: string
+          created_at?: string | null
+          descripcion?: string | null
+          fecha_expiracion?: string | null
+          id?: string
+          updated_at?: string | null
+          usos_actuales?: number | null
+          usos_maximos?: number | null
+        }
+        Update: {
+          activo?: boolean | null
+          codigo?: string
+          created_at?: string | null
+          descripcion?: string | null
+          fecha_expiracion?: string | null
+          id?: string
+          updated_at?: string | null
+          usos_actuales?: number | null
+          usos_maximos?: number | null
+        }
+        Relationships: []
+      }
+      guest_list: {
+        Row: {
+          checked_in: boolean | null
+          codigo: string
+          created_at: string | null
+          email: string
+          fecha: string
+          id: string
+          invitados: number
+          nombre: string
+          telefono: string
+          updated_at: string | null
+        }
+        Insert: {
+          checked_in?: boolean | null
+          codigo: string
+          created_at?: string | null
+          email: string
+          fecha: string
+          id?: string
+          invitados?: number
+          nombre: string
+          telefono: string
+          updated_at?: string | null
+        }
+        Update: {
+          checked_in?: boolean | null
+          codigo?: string
+          created_at?: string | null
+          email?: string
+          fecha?: string
+          id?: string
+          invitados?: number
+          nombre?: string
+          telefono?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      mesas: {
+        Row: {
+          capacidad: number
+          categoria: string
+          created_at: string | null
+          descripcion: string | null
+          disponible: boolean | null
+          id: number
+          nombre: string
+          precio_minimo: number
+          ubicacion: string
+          updated_at: string | null
+          x: number | null
+          y: number | null
+        }
+        Insert: {
+          capacidad: number
+          categoria: string
+          created_at?: string | null
+          descripcion?: string | null
+          disponible?: boolean | null
+          id?: number
+          nombre: string
+          precio_minimo: number
+          ubicacion: string
+          updated_at?: string | null
+          x?: number | null
+          y?: number | null
+        }
+        Update: {
+          capacidad?: number
+          categoria?: string
+          created_at?: string | null
+          descripcion?: string | null
+          disponible?: boolean | null
+          id?: number
+          nombre?: string
+          precio_minimo?: number
+          ubicacion?: string
+          updated_at?: string | null
+          x?: number | null
+          y?: number | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -44,6 +188,143 @@ export type Database = {
           user_name?: string
         }
         Relationships: []
+      }
+      productos: {
+        Row: {
+          categoria: string
+          created_at: string | null
+          descripcion: string | null
+          disponible: boolean | null
+          id: number
+          imagen: string | null
+          nombre: string
+          precio: number
+          updated_at: string | null
+        }
+        Insert: {
+          categoria: string
+          created_at?: string | null
+          descripcion?: string | null
+          disponible?: boolean | null
+          id?: number
+          imagen?: string | null
+          nombre: string
+          precio: number
+          updated_at?: string | null
+        }
+        Update: {
+          categoria?: string
+          created_at?: string | null
+          descripcion?: string | null
+          disponible?: boolean | null
+          id?: number
+          imagen?: string | null
+          nombre?: string
+          precio?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      reserva_productos: {
+        Row: {
+          cantidad: number
+          id: string
+          precio_unitario: number
+          producto_id: number | null
+          reserva_id: string | null
+        }
+        Insert: {
+          cantidad: number
+          id?: string
+          precio_unitario: number
+          producto_id?: number | null
+          reserva_id?: string | null
+        }
+        Update: {
+          cantidad?: number
+          id?: string
+          precio_unitario?: number
+          producto_id?: number | null
+          reserva_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reserva_productos_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reserva_productos_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reservas: {
+        Row: {
+          codigo_vip: string | null
+          created_at: string | null
+          email: string
+          estado: string | null
+          fecha: string
+          hora: string
+          id: string
+          mesa_id: number | null
+          nombre: string
+          notas: string | null
+          personas: number
+          stripe_session_id: string | null
+          telefono: string
+          total: number
+          updated_at: string | null
+        }
+        Insert: {
+          codigo_vip?: string | null
+          created_at?: string | null
+          email: string
+          estado?: string | null
+          fecha: string
+          hora: string
+          id?: string
+          mesa_id?: number | null
+          nombre: string
+          notas?: string | null
+          personas: number
+          stripe_session_id?: string | null
+          telefono: string
+          total: number
+          updated_at?: string | null
+        }
+        Update: {
+          codigo_vip?: string | null
+          created_at?: string | null
+          email?: string
+          estado?: string | null
+          fecha?: string
+          hora?: string
+          id?: string
+          mesa_id?: number | null
+          nombre?: string
+          notas?: string | null
+          personas?: number
+          stripe_session_id?: string | null
+          telefono?: string
+          total?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservas_mesa_id_fkey"
+            columns: ["mesa_id"]
+            isOneToOne: false
+            referencedRelation: "mesas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

@@ -8,65 +8,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-
-interface VIPCode {
-  id: number;
-  codigo: string;
-  descripcion: string;
-  activo: boolean;
-  usos: number;
-  maxUsos: number | null;
-  expiracion: string | null;
-}
+import { useSupabaseCodigosVIP } from "@/hooks/useSupabaseCodigosVIP";
 
 const VIPCodeManagement = () => {
   const { toast } = useToast();
+  const { codigos, loading, createCodigo, updateCodigo, deleteCodigo } = useSupabaseCodigosVIP();
+  
   const [newCode, setNewCode] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [maxUses, setMaxUses] = useState<string>('');
   const [expirationDate, setExpirationDate] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
   
-  // Estado inicial con algunos códigos de ejemplo
-  const [vipCodes, setVipCodes] = useState<VIPCode[]>([
-    {
-      id: 1,
-      codigo: 'VIP123',
-      descripcion: 'Código para acceso a mesas Gold',
-      activo: true,
-      usos: 8,
-      maxUsos: 50,
-      expiracion: '2025-06-30'
-    },
-    {
-      id: 2,
-      codigo: 'GOLDVIP',
-      descripcion: 'Código premium exclusivo',
-      activo: true,
-      usos: 3,
-      maxUsos: null,
-      expiracion: null
-    },
-    {
-      id: 3,
-      codigo: 'STAFF2025',
-      descripcion: 'Código para personal',
-      activo: true,
-      usos: 15,
-      maxUsos: null,
-      expiracion: null
-    },
-    {
-      id: 4,
-      codigo: 'PROMO25',
-      descripcion: 'Promoción 25% descuento',
-      activo: false,
-      usos: 50,
-      maxUsos: 50,
-      expiracion: '2025-04-30'
-    }
-  ]);
-  
-  const addVIPCode = () => {
+  const addVIPCode = async () => {
     if (!newCode || !newDescription) {
       toast({
         title: "Campos incompletos",
@@ -77,7 +31,7 @@ const VIPCodeManagement = () => {
     }
     
     // Verificar que el código no exista ya
-    if (vipCodes.some(code => code.codigo === newCode)) {
+    if (codigos.some(code => code.codigo === newCode.toUpperCase())) {
       toast({
         title: "Código duplicado",
         description: "Este código VIP ya existe.",
@@ -86,55 +40,85 @@ const VIPCodeManagement = () => {
       return;
     }
     
-    const newVipCode: VIPCode = {
-      id: Date.now(),
-      codigo: newCode,
-      descripcion: newDescription,
-      activo: true,
-      usos: 0,
-      maxUsos: maxUses ? parseInt(maxUses) : null,
-      expiracion: expirationDate || null
-    };
+    setIsCreating(true);
     
-    setVipCodes([...vipCodes, newVipCode]);
-    
-    // Limpiar formulario
-    setNewCode('');
-    setNewDescription('');
-    setMaxUses('');
-    setExpirationDate('');
-    
-    toast({
-      title: "Código VIP creado",
-      description: `El código ${newCode} ha sido creado exitosamente.`
-    });
+    try {
+      await createCodigo({
+        codigo: newCode,
+        descripcion: newDescription,
+        activo: true,
+        fecha_expiracion: expirationDate || null,
+        usos_maximos: maxUses ? parseInt(maxUses) : null
+      });
+      
+      // Limpiar formulario
+      setNewCode('');
+      setNewDescription('');
+      setMaxUses('');
+      setExpirationDate('');
+      
+      toast({
+        title: "Código VIP creado",
+        description: `El código ${newCode} ha sido creado exitosamente.`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Hubo un problema al crear el código VIP.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreating(false);
+    }
   };
   
-  const toggleCodeStatus = (id: number) => {
-    setVipCodes(vipCodes.map(code => 
-      code.id === id ? { ...code, activo: !code.activo } : code
-    ));
-    
-    const code = vipCodes.find(c => c.id === id);
-    if (code) {
+  const toggleCodeStatus = async (id: string, currentStatus: boolean) => {
+    try {
+      await updateCodigo(id, { activo: !currentStatus });
+      
+      const code = codigos.find(c => c.id === id);
+      if (code) {
+        toast({
+          title: currentStatus ? "Código desactivado" : "Código activado",
+          description: `El código ${code.codigo} ha sido ${currentStatus ? 'desactivado' : 'activado'} exitosamente.`
+        });
+      }
+    } catch (error) {
       toast({
-        title: code.activo ? "Código desactivado" : "Código activado",
-        description: `El código ${code.codigo} ha sido ${code.activo ? 'desactivado' : 'activado'} exitosamente.`
+        title: "Error",
+        description: "Hubo un problema al actualizar el código.",
+        variant: "destructive"
       });
     }
   };
   
-  const deleteCode = (id: number) => {
-    const code = vipCodes.find(c => c.id === id);
-    setVipCodes(vipCodes.filter(code => code.id !== id));
-    
-    if (code) {
+  const deleteCode = async (id: string) => {
+    try {
+      const code = codigos.find(c => c.id === id);
+      await deleteCodigo(id);
+      
+      if (code) {
+        toast({
+          title: "Código eliminado",
+          description: `El código ${code.codigo} ha sido eliminado exitosamente.`
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Código eliminado",
-        description: `El código ${code.codigo} ha sido eliminado exitosamente.`
+        title: "Error",
+        description: "Hubo un problema al eliminar el código.",
+        variant: "destructive"
       });
     }
   };
+  
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Cargando códigos VIP...</div>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">
@@ -179,8 +163,9 @@ const VIPCodeManagement = () => {
             </div>
           </div>
           
-          <Button onClick={addVIPCode} className="mb-6">
-            <PlusCircle className="mr-2 h-4 w-4" /> Crear Código VIP
+          <Button onClick={addVIPCode} className="mb-6" disabled={isCreating}>
+            <PlusCircle className="mr-2 h-4 w-4" /> 
+            {isCreating ? 'Creando...' : 'Crear Código VIP'}
           </Button>
           
           <Table>
@@ -195,7 +180,7 @@ const VIPCodeManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {vipCodes.map((code) => (
+              {codigos.map((code) => (
                 <TableRow key={code.id}>
                   <TableCell className="font-medium">{code.codigo}</TableCell>
                   <TableCell>{code.descripcion}</TableCell>
@@ -203,7 +188,7 @@ const VIPCodeManagement = () => {
                     <div className="flex items-center gap-2">
                       <Switch 
                         checked={code.activo} 
-                        onCheckedChange={() => toggleCodeStatus(code.id)} 
+                        onCheckedChange={() => toggleCodeStatus(code.id, code.activo)} 
                       />
                       <Badge variant={code.activo ? "default" : "secondary"}>
                         {code.activo ? 'Activo' : 'Inactivo'}
@@ -213,19 +198,19 @@ const VIPCodeManagement = () => {
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>{code.usos}</span>
-                      {code.maxUsos && (
+                      <span>{code.usos_actuales}</span>
+                      {code.usos_maximos && (
                         <span className="text-xs text-muted-foreground">
-                          /{code.maxUsos}
+                          /{code.usos_maximos}
                         </span>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
-                    {code.expiracion ? (
+                    {code.fecha_expiracion ? (
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span>{code.expiracion}</span>
+                        <span>{code.fecha_expiracion}</span>
                       </div>
                     ) : (
                       <span className="text-xs text-muted-foreground">Sin expiración</span>
@@ -253,7 +238,7 @@ const VIPCodeManagement = () => {
             </div>
           </div>
           <p className="text-sm text-muted-foreground">
-            Total códigos: {vipCodes.length}
+            Total códigos: {codigos.length}
           </p>
         </CardFooter>
       </Card>

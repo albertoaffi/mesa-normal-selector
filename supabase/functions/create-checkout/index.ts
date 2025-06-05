@@ -30,14 +30,14 @@ serve(async (req) => {
     });
 
     const body = await req.json();
-    const { nombre, reservationId, total, productos, mesa, fecha } = body;
+    const { reservaId, nombre, total, productos, mesa, fecha } = body;
+
+    console.log('Creating Stripe checkout session for reserva:', reservaId);
 
     // Format product description
     const productNames = productos.map(p => `${p.nombre} x${p.cantidad}`).join(', ');
     const description = `Mesa: ${mesa.nombre}, Fecha: ${fecha}, Productos: ${productNames}`;
 
-    console.log('Creating Stripe checkout session...');
-    
     // Create a Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -57,19 +57,32 @@ serve(async (req) => {
       mode: 'payment',
       success_url: `${req.headers.get('origin')}/confirmacion?session_id={CHECKOUT_SESSION_ID}&success=true`,
       cancel_url: `${req.headers.get('origin')}/confirmacion?canceled=true`,
+      metadata: {
+        reserva_id: reservaId
+      }
     });
 
     console.log('Session created successfully:', session.id);
 
     // Create Supabase client for database operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Store payment information in the database
+    // Update the reservation with the Stripe session ID
+    const { error: updateError } = await supabase
+      .from('reservas')
+      .update({ stripe_session_id: session.id })
+      .eq('id', reservaId);
+
+    if (updateError) {
+      console.error('Error updating reservation with session ID:', updateError);
+    }
+
+    // Store payment information in the payments table
     await supabase.from('payments').insert({
       user_name: nombre,
-      reservation_id: reservationId || String(Date.now()),
+      reservation_id: reservaId,
       amount: Math.round(total * 100),
       stripe_session_id: session.id,
     });

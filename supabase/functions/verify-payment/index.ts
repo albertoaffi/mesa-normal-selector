@@ -47,17 +47,38 @@ serve(async (req) => {
     
     // Create Supabase client for database operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Update payment status in database
-    await supabase
+    // Update payment status in payments table
+    const { error: paymentError } = await supabase
       .from('payments')
       .update({ 
         status: session.payment_status,
         updated_at: new Date().toISOString()
       })
       .eq('stripe_session_id', session_id);
+
+    if (paymentError) {
+      console.error('Error updating payment:', paymentError);
+    }
+
+    // Update reservation status if payment is successful
+    if (session.payment_status === 'paid') {
+      const { error: reservaError } = await supabase
+        .from('reservas')
+        .update({ 
+          estado: 'confirmada',
+          updated_at: new Date().toISOString()
+        })
+        .eq('stripe_session_id', session_id);
+
+      if (reservaError) {
+        console.error('Error updating reservation:', reservaError);
+      } else {
+        console.log('Reservation confirmed successfully');
+      }
+    }
 
     return new Response(
       JSON.stringify({ 

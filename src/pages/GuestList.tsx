@@ -13,6 +13,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import GuestListConfirmation from '@/components/GuestListConfirmation';
+import { supabase } from '@/integrations/supabase/client';
 
 const GuestList = () => {
   const { toast } = useToast();
@@ -22,6 +23,7 @@ const GuestList = () => {
   const [telefono, setTelefono] = useState("");
   const [fecha, setFecha] = useState<Date | undefined>(undefined);
   const [invitados, setInvitados] = useState<number>(1);
+  const [loading, setLoading] = useState(false);
   
   const [submitted, setSubmitted] = useState(false);
   const [confirmationCode, setConfirmationCode] = useState("");
@@ -34,7 +36,7 @@ const GuestList = () => {
     return `GL-${date.getFullYear().toString().slice(2)}${month}${day}${randomDigits}`;
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!nombre || !email || !telefono || !fecha) {
@@ -46,9 +48,27 @@ const GuestList = () => {
       return;
     }
     
-    // Simulación de envío de datos a servidor
-    setTimeout(() => {
+    setLoading(true);
+    
+    try {
       const code = generateConfirmationCode();
+      
+      const { error } = await supabase
+        .from('guest_list')
+        .insert({
+          nombre,
+          email,
+          telefono,
+          fecha: fecha.toISOString().split('T')[0],
+          invitados,
+          codigo: code
+        });
+
+      if (error) {
+        console.error('Error saving to guest list:', error);
+        throw error;
+      }
+
       setConfirmationCode(code);
       setSubmitted(true);
       
@@ -63,7 +83,16 @@ const GuestList = () => {
         title: "¡Registro exitoso!",
         description: "Has sido añadido a nuestra guest list.",
       });
-    }, 1000);
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
+      toast({
+        title: "Error",
+        description: "Hubo un problema al registrarte. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
   return (
@@ -166,8 +195,8 @@ const GuestList = () => {
                     </p>
                   </div>
                   
-                  <Button type="submit" className="w-full">
-                    Unirse a la Guest List
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? 'Registrando...' : 'Unirse a la Guest List'}
                   </Button>
                 </form>
               </CardContent>
