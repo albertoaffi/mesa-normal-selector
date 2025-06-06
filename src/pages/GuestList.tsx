@@ -22,7 +22,7 @@ const GuestList = () => {
   const [email, setEmail] = useState("");
   const [telefono, setTelefono] = useState("");
   const [fecha, setFecha] = useState<Date | undefined>(undefined);
-  const [invitados, setInvitados] = useState<number>(1);
+  const [invitados, setInvitados] = useState<string>("1");
   const [loading, setLoading] = useState(false);
   
   const [submitted, setSubmitted] = useState(false);
@@ -39,10 +39,12 @@ const GuestList = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!nombre || !email || !telefono || !fecha) {
+    const numInvitados = parseInt(invitados);
+    
+    if (!nombre || !email || !telefono || !fecha || isNaN(numInvitados) || numInvitados < 1) {
       toast({
         title: "Error",
-        description: "Por favor completa todos los campos.",
+        description: "Por favor completa todos los campos correctamente.",
         variant: "destructive",
       });
       return;
@@ -53,6 +55,16 @@ const GuestList = () => {
     try {
       const code = generateConfirmationCode();
       
+      console.log('Attempting to insert guest list entry:', {
+        nombre,
+        email,
+        telefono,
+        fecha: fecha.toISOString().split('T')[0],
+        invitados: numInvitados,
+        codigo: code
+      });
+
+      // Insertar directamente sin autenticación para la guest list pública
       const { error } = await supabase
         .from('guest_list')
         .insert({
@@ -60,7 +72,7 @@ const GuestList = () => {
           email,
           telefono,
           fecha: fecha.toISOString().split('T')[0],
-          invitados,
+          invitados: numInvitados,
           codigo: code
         });
 
@@ -69,15 +81,9 @@ const GuestList = () => {
         throw error;
       }
 
+      console.log('Guest list entry saved successfully');
       setConfirmationCode(code);
       setSubmitted(true);
-      
-      // Reiniciar formulario
-      setNombre("");
-      setEmail("");
-      setTelefono("");
-      setFecha(undefined);
-      setInvitados(1);
       
       toast({
         title: "¡Registro exitoso!",
@@ -92,6 +98,14 @@ const GuestList = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInvitadosChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Solo permitir números
+    if (value === '' || /^\d+$/.test(value)) {
+      setInvitados(value);
     }
   };
   
@@ -184,14 +198,13 @@ const GuestList = () => {
                     <Label htmlFor="invitados">Número de invitados</Label>
                     <Input
                       id="invitados"
-                      type="number"
-                      min="1"
-                      max="10"
+                      type="text"
                       value={invitados}
-                      onChange={(e) => setInvitados(parseInt(e.target.value))}
+                      onChange={handleInvitadosChange}
+                      placeholder="1"
                     />
                     <p className="text-xs text-gray-500">
-                      Inclúyete a ti mismo en el número total
+                      Inclúyete a ti mismo en el número total (mínimo 1, máximo 10)
                     </p>
                   </div>
                   
@@ -213,7 +226,7 @@ const GuestList = () => {
               telefono={telefono}
               confirmationCode={confirmationCode}
               fecha={fecha ? format(fecha, "EEEE, d 'de' MMMM", { locale: es }) : ""}
-              invitados={invitados}
+              invitados={parseInt(invitados)}
             />
           )}
         </div>
