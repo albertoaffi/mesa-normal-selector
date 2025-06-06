@@ -26,21 +26,35 @@ export const useBrandConfig = () => {
       const { data, error } = await supabase
         .from('brand_config')
         .select('*')
-        .limit(1);
+        .limit(1)
+        .maybeSingle();
 
       console.log('Fetch result:', { data, error });
 
       if (error) {
         console.error('Error fetching brand config:', error);
+        // Use default config if there's an error
+        const defaultConfig: BrandConfig = {
+          id: 'default',
+          name: 'THE NORMAL',
+          logo_url: null,
+          background_image_url: null,
+          primary_color: '#FFD700',
+          secondary_color: '#9932CC',
+          accent_color: '#FF2400',
+          text_color: '#FFFFFF',
+          background_color: '#000000'
+        };
+        setConfig(defaultConfig);
         return;
       }
 
-      if (data && data.length > 0) {
-        console.log('Config found:', data[0]);
-        setConfig(data[0]);
+      if (data) {
+        console.log('Config found:', data);
+        setConfig(data);
       } else {
         console.log('No config found, using defaults');
-        // Si no hay config, usar valores por defecto sin crear en BD
+        // Si no hay config, usar valores por defecto
         const defaultConfig: BrandConfig = {
           id: 'default',
           name: 'THE NORMAL',
@@ -56,6 +70,19 @@ export const useBrandConfig = () => {
       }
     } catch (error) {
       console.error('Error in fetchConfig:', error);
+      // Use default config as fallback
+      const defaultConfig: BrandConfig = {
+        id: 'default',
+        name: 'THE NORMAL',
+        logo_url: null,
+        background_image_url: null,
+        primary_color: '#FFD700',
+        secondary_color: '#9932CC',
+        accent_color: '#FF2400',
+        text_color: '#FFFFFF',
+        background_color: '#000000'
+      };
+      setConfig(defaultConfig);
     } finally {
       setLoading(false);
     }
@@ -77,18 +104,22 @@ export const useBrandConfig = () => {
       
       if (config.id === 'default') {
         // Si es config por defecto, crear nuevo registro
+        const newConfig = {
+          name: updates.name || config.name,
+          logo_url: updates.logo_url !== undefined ? updates.logo_url : config.logo_url,
+          background_image_url: updates.background_image_url !== undefined ? updates.background_image_url : config.background_image_url,
+          primary_color: updates.primary_color || config.primary_color,
+          secondary_color: updates.secondary_color || config.secondary_color,
+          accent_color: updates.accent_color || config.accent_color,
+          text_color: updates.text_color || config.text_color,
+          background_color: updates.background_color || config.background_color
+        };
+
+        console.log('Creating new config:', newConfig);
+        
         const { data, error } = await supabase
           .from('brand_config')
-          .insert([{
-            name: updates.name || config.name,
-            logo_url: updates.logo_url !== undefined ? updates.logo_url : config.logo_url,
-            background_image_url: updates.background_image_url !== undefined ? updates.background_image_url : config.background_image_url,
-            primary_color: updates.primary_color || config.primary_color,
-            secondary_color: updates.secondary_color || config.secondary_color,
-            accent_color: updates.accent_color || config.accent_color,
-            text_color: updates.text_color || config.text_color,
-            background_color: updates.background_color || config.background_color
-          }])
+          .insert([newConfig])
           .select()
           .single();
 
@@ -106,6 +137,8 @@ export const useBrandConfig = () => {
         setConfig(data);
       } else {
         // Actualizar registro existente
+        console.log('Updating existing config with ID:', config.id);
+        
         const { data, error } = await supabase
           .from('brand_config')
           .update(updates)
