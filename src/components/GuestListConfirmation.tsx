@@ -1,10 +1,8 @@
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Calendar, Users, Ticket, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
 interface GuestListConfirmationProps {
   nombre: string;
   email: string;
@@ -13,7 +11,6 @@ interface GuestListConfirmationProps {
   fecha: string;
   invitados: number;
 }
-
 const GuestListConfirmation: React.FC<GuestListConfirmationProps> = ({
   nombre,
   email,
@@ -22,19 +19,18 @@ const GuestListConfirmation: React.FC<GuestListConfirmationProps> = ({
   fecha,
   invitados
 }) => {
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleCopyCode = () => {
     navigator.clipboard.writeText(confirmationCode);
     toast({
       title: "Código copiado",
-      description: "El código de confirmación ha sido copiado al portapapeles.",
+      description: "El código de confirmación ha sido copiado al portapapeles."
     });
   };
-
   const handleShare = () => {
     const message = `¡Estoy en la Guest List de The Normal! 🎉\n\nCódigo: ${confirmationCode}\nFecha: ${fecha}\nPersonas: ${invitados}`;
-    
     if (navigator.share) {
       navigator.share({
         title: 'Guest List - The Normal',
@@ -44,13 +40,11 @@ const GuestListConfirmation: React.FC<GuestListConfirmationProps> = ({
       navigator.clipboard.writeText(message);
       toast({
         title: "Información copiada",
-        description: "Los detalles han sido copiados al portapapeles.",
+        description: "Los detalles han sido copiados al portapapeles."
       });
     }
   };
-
-  return (
-    <div className="max-w-md mx-auto">
+  return <div className="max-w-md mx-auto">
       <Card>
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
@@ -70,7 +64,7 @@ const GuestListConfirmation: React.FC<GuestListConfirmationProps> = ({
             <div className="text-2xl font-mono font-bold text-gray-900 mb-3">
               {confirmationCode}
             </div>
-            <Button variant="outline" size="sm" onClick={handleCopyCode}>
+            <Button variant="outline" size="sm" onClick={handleCopyCode} className="text-gray-900">
               <Ticket className="mr-2 h-4 w-4" />
               Copiar Código
             </Button>
@@ -121,10 +115,7 @@ const GuestListConfirmation: React.FC<GuestListConfirmationProps> = ({
               Compartir Detalles
             </Button>
             
-            <Button 
-              onClick={() => window.location.href = '/'}
-              className="w-full"
-            >
+            <Button onClick={() => window.location.href = '/'} className="w-full">
               Volver al Inicio
             </Button>
           </div>
@@ -135,27 +126,19 @@ const GuestListConfirmation: React.FC<GuestListConfirmationProps> = ({
       <Card className="mt-6">
         <CardContent className="p-6 text-center">
           <div className="bg-white p-4 rounded-lg inline-block">
-            <img 
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-                JSON.stringify({
-                  code: confirmationCode,
-                  name: nombre,
-                  email: email,
-                  date: fecha,
-                  guests: invitados
-                })
-              )}`} 
-              alt="QR Code" 
-              className="w-32 h-32 mx-auto"
-            />
+            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(JSON.stringify({
+            code: confirmationCode,
+            name: nombre,
+            email: email,
+            date: fecha,
+            guests: invitados
+          }))}`} alt="QR Code" className="w-32 h-32 mx-auto" />
           </div>
           <p className="text-sm text-gray-600 mt-3">
             Escanea este código QR en la entrada
           </p>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default GuestListConfirmation;
