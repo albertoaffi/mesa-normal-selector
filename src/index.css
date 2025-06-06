@@ -34,6 +34,13 @@
     --ring: 212.7 26.8% 83.9%;
  
     --radius: 1rem;
+
+    /* Brand variables */
+    --brand-primary: #FFD700;
+    --brand-secondary: #9932CC;
+    --brand-accent: #FF2400;
+    --brand-text: #FFFFFF;
+    --brand-background: #000000;
   }
 }
  
@@ -43,10 +50,39 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-color: black;
-    color: white;
+    background-color: var(--brand-background, black);
+    color: var(--brand-text, white);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
+}
+
+/* Utility classes for brand colors */
+.bg-brand-primary {
+  background-color: var(--brand-primary);
+}
+
+.bg-brand-secondary {
+  background-color: var(--brand-secondary);
+}
+
+.bg-brand-accent {
+  background-color: var(--brand-accent);
+}
+
+.text-brand-primary {
+  color: var(--brand-primary);
+}
+
+.text-brand-secondary {
+  color: var(--brand-secondary);
+}
+
+.text-brand-accent {
+  color: var(--brand-accent);
+}
+
+.border-brand-primary {
+  border-color: var(--brand-primary);
 }
 
 /* Estilos para las mesas */

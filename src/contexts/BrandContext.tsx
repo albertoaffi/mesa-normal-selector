@@ -5,6 +5,7 @@ import { useBrandConfig, BrandConfig } from '@/hooks/useBrandConfig';
 interface BrandContextType {
   config: BrandConfig | null;
   loading: boolean;
+  updateConfig: (updates: Partial<BrandConfig>) => Promise<void>;
 }
 
 const BrandContext = createContext<BrandContextType | undefined>(undefined);
@@ -18,10 +19,12 @@ export const useBrand = () => {
 };
 
 export const BrandProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { config, loading } = useBrandConfig();
+  const { config, loading, updateConfig } = useBrandConfig();
 
   useEffect(() => {
     if (config) {
+      console.log('Applying brand config:', config);
+      
       // Aplicar estilos CSS custom properties
       const root = document.documentElement;
       root.style.setProperty('--brand-primary', config.primary_color);
@@ -31,12 +34,12 @@ export const BrandProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       root.style.setProperty('--brand-background', config.background_color);
       
       // Actualizar título de la página
-      document.title = config.name;
+      document.title = config.name || 'THE NORMAL';
     }
   }, [config]);
 
   return (
-    <BrandContext.Provider value={{ config, loading }}>
+    <BrandContext.Provider value={{ config, loading, updateConfig }}>
       {children}
     </BrandContext.Provider>
   );
