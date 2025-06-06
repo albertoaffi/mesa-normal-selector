@@ -1,389 +1,273 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { ArrowUp, ArrowDown, CircleDollarSign, Users, Calendar, Coffee, Clock, Ticket, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-
-// Datos de ejemplo para los gráficos
-const revenueData = [
-  { name: 'Lun', value: 3200 },
-  { name: 'Mar', value: 4500 },
-  { name: 'Mié', value: 3800 },
-  { name: 'Jue', value: 5100 },
-  { name: 'Vie', value: 6800 },
-  { name: 'Sáb', value: 8200 },
-  { name: 'Dom', value: 7500 },
-];
-
-const categoriesData = [
-  { name: 'Gold', value: 35, color: '#FFD700' },
-  { name: 'Silver', value: 25, color: '#C0C0C0' },
-  { name: 'Bronze', value: 20, color: '#CD7F32' },
-  { name: 'Purple', value: 15, color: '#800080' },
-  { name: 'Red', value: 5, color: '#FF0000' },
-];
-
-const recentReservations = [
-  { id: 1, cliente: 'Juan Pérez', mesa: 'Mesa Gold 2', fecha: '15/05/2025', hora: '20:00', personas: 6, estado: 'Confirmada' },
-  { id: 2, cliente: 'Ana López', mesa: 'Mesa Silver 3', fecha: '15/05/2025', hora: '21:30', personas: 4, estado: 'Pendiente' },
-  { id: 3, cliente: 'Carlos Ruiz', mesa: 'Mesa Bronze 1', fecha: '16/05/2025', hora: '19:45', personas: 2, estado: 'Confirmada' },
-  { id: 4, cliente: 'María González', mesa: 'Mesa Gold 1', fecha: '16/05/2025', hora: '20:30', personas: 8, estado: 'Cancelada' },
-];
-
-// Datos de ejemplo para guest list
-const guestListData = [
-  { id: 1, nombre: 'Laura Martínez', email: 'laura@example.com', fecha: '15/05/2025', telefono: '555-123-4567', invitados: 2 },
-  { id: 2, nombre: 'Roberto Sánchez', email: 'roberto@example.com', fecha: '15/05/2025', telefono: '555-987-6543', invitados: 1 },
-  { id: 3, nombre: 'Carmen Rodríguez', email: 'carmen@example.com', fecha: '16/05/2025', telefono: '555-456-7890', invitados: 4 },
-  { id: 4, nombre: 'Daniel Moreno', email: 'daniel@example.com', fecha: '16/05/2025', telefono: '555-789-0123', invitados: 2 },
-  { id: 5, nombre: 'Patricia Gómez', email: 'patricia@example.com', fecha: '17/05/2025', telefono: '555-654-3210', invitados: 3 },
-];
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Users, DollarSign, TrendingUp, Clock, CheckCircle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from '@/integrations/supabase/client';
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 const Dashboard = () => {
-  const [guestListLimit, setGuestListLimit] = useState<number>(50);
-  const [currentGuestCount, setCurrentGuestCount] = useState<number>(28);
-
-  const handleGuestListLimitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value);
-    if (!isNaN(value) && value >= 0) {
-      setGuestListLimit(value);
+  // Fetch reservas data
+  const { data: reservas = [] } = useQuery({
+    queryKey: ['admin-reservas'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('reservas')
+        .select(`
+          *,
+          mesas (nombre, categoria)
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
     }
-  };
+  });
+
+  // Fetch guest list data
+  const { data: guestList = [] } = useQuery({
+    queryKey: ['admin-guest-list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('guest_list')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Fetch mesas data
+  const { data: mesas = [] } = useQuery({
+    queryKey: ['admin-mesas'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('mesas')
+        .select('*');
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Calculate stats
+  const today = new Date().toISOString().split('T')[0];
+  const reservasHoy = reservas.filter(r => r.fecha === today);
+  const guestListHoy = guestList.filter(g => g.fecha === today);
+  const totalIngresos = reservas.reduce((sum, r) => sum + (r.total || 0), 0);
+  const mesasDisponibles = mesas.filter(m => m.disponible).length;
+
+  // Recent activity
+  const actividadReciente = [
+    ...reservas.slice(0, 3).map(r => ({
+      tipo: 'reserva',
+      descripcion: `Nueva reserva: ${r.nombre} - Mesa ${r.mesas?.nombre}`,
+      tiempo: r.created_at,
+      estado: r.estado
+    })),
+    ...guestList.slice(0, 2).map(g => ({
+      tipo: 'guest_list',
+      descripcion: `Guest List: ${g.nombre} - ${g.invitados} personas`,
+      tiempo: g.created_at,
+      estado: g.checked_in ? 'confirmada' : 'pendiente'
+    }))
+  ].sort((a, b) => new Date(b.tiempo).getTime() - new Date(a.tiempo).getTime()).slice(0, 5);
 
   return (
     <div className="space-y-6">
-      {/* Tarjetas de estadísticas */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Ingresos Totales</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Reservas Hoy</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">$45,231.89</div>
-              <div className="flex items-center gap-1 text-emerald-600">
-                <ArrowUp className="h-4 w-4" />
-                <span className="text-xs">12.5%</span>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="pt-0">
-            <p className="text-xs text-muted-foreground">+2.5% vs. semana anterior</p>
-          </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Reservas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">+573</div>
-              <div className="flex items-center gap-1 text-emerald-600">
-                <ArrowUp className="h-4 w-4" />
-                <span className="text-xs">8.2%</span>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="pt-0">
-            <p className="text-xs text-muted-foreground">+189 nuevas esta semana</p>
-          </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Clientes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">+2,835</div>
-              <div className="flex items-center gap-1 text-rose-500">
-                <ArrowDown className="h-4 w-4" />
-                <span className="text-xs">3.1%</span>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="pt-0">
-            <p className="text-xs text-muted-foreground">-42 vs. semana anterior</p>
-          </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Ocupación</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">78.5%</div>
-              <div className="flex items-center gap-1 text-emerald-600">
-                <ArrowUp className="h-4 w-4" />
-                <span className="text-xs">4.3%</span>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="pt-0">
-            <p className="text-xs text-muted-foreground">+5.1% vs. semana anterior</p>
-          </CardFooter>
-        </Card>
-      </div>
-
-      {/* Gráficos */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CircleDollarSign className="h-5 w-5" />
-              <span>Ingresos por día</span>
-            </CardTitle>
-            <CardDescription>Datos de los últimos 7 días</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={revenueData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(value) => `$${value}`} />
-                <Tooltip formatter={(value) => [`$${value}`, 'Ingresos']} />
-                <Bar dataKey="value" fill="#8884d8" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="text-2xl font-bold">{reservasHoy.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Total reservas: {reservas.length}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Coffee className="h-5 w-5" />
-              <span>Distribución de mesas por categoría</span>
-            </CardTitle>
-            <CardDescription>Porcentaje de reservas por tipo de mesa</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Guest List Hoy</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={categoriesData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {categoriesData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Legend />
-                <Tooltip formatter={(value) => [`${value}%`, 'Porcentaje']} />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="text-2xl font-bold">{guestListHoy.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Total invitados: {guestList.length}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Ingresos Totales</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${totalIngresos.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              Desde reservas confirmadas
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Mesas Disponibles</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{mesasDisponibles}</div>
+            <p className="text-xs text-muted-foreground">
+              de {mesas.length} mesas totales
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Sección de Guest List */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Ticket className="h-5 w-5" />
-              <span>Guest List</span>
-            </CardTitle>
-            <CardDescription>Administración de lista de invitados</CardDescription>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground">Registrados: {currentGuestCount}</span>
-              <span className="text-xs text-muted-foreground">Límite: {guestListLimit}</span>
-            </div>
-            <Button variant="ghost" size="icon">
-              <Settings className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        
-        <CardContent>
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex-1">
-              <label className="text-sm font-medium mb-1 block">Configuración de límite</label>
-              <div className="flex items-center gap-2">
-                <Input 
-                  type="number" 
-                  value={guestListLimit} 
-                  onChange={handleGuestListLimitChange}
-                  className="max-w-[120px]"
-                  min="0"
-                />
-                <Button size="sm" variant="outline">Aplicar</Button>
-              </div>
-            </div>
-            
-            <div className="flex-1">
-              <div className="relative pt-1">
-                <div className="text-sm font-medium mb-1 flex justify-between">
-                  <span>Capacidad</span>
-                  <span>{Math.round((currentGuestCount / guestListLimit) * 100)}%</span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Reservations */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Reservas Recientes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {reservas.slice(0, 5).map((reserva) => (
+                <div key={reserva.id} className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{reserva.nombre}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {reserva.mesas?.nombre} - {format(new Date(reserva.fecha), "dd/MM/yyyy")}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <Badge variant={
+                      reserva.estado === 'confirmada' ? 'default' : 
+                      reserva.estado === 'pendiente' ? 'secondary' : 'destructive'
+                    }>
+                      {reserva.estado}
+                    </Badge>
+                    <p className="text-sm text-muted-foreground">${reserva.total}</p>
+                  </div>
                 </div>
-                <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200 dark:bg-gray-700">
-                  <div 
-                    style={{ width: `${Math.min(100, (currentGuestCount / guestListLimit) * 100)}%` }} 
-                    className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center ${
-                      (currentGuestCount / guestListLimit) > 0.8 ? 'bg-red-500' : 'bg-emerald-500'
-                    }`}
-                  ></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Teléfono</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Invitados</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {guestListData.map((guest) => (
-                <TableRow key={guest.id}>
-                  <TableCell className="font-medium">{guest.nombre}</TableCell>
-                  <TableCell>{guest.email}</TableCell>
-                  <TableCell>{guest.telefono}</TableCell>
-                  <TableCell>{guest.fecha}</TableCell>
-                  <TableCell>{guest.invitados}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">Editar</Button>
-                    <Button variant="ghost" size="sm" className="text-red-500">Eliminar</Button>
-                  </TableCell>
-                </TableRow>
               ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-        
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" size="sm">Exportar lista</Button>
-          <p className="flex items-center text-sm text-muted-foreground">
-            <Clock className="mr-1 h-4 w-4" />
-            Actualizado: 14 de Mayo, 2025 - 14:30
-          </p>
-        </CardFooter>
-      </Card>
+              {reservas.length === 0 && (
+                <p className="text-center text-muted-foreground py-4">
+                  No hay reservas aún
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Tabla de reservas recientes */}
+        {/* Activity Feed */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Actividad Reciente</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {actividadReciente.map((actividad, index) => (
+                <div key={index} className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    {actividad.tipo === 'reserva' ? (
+                      <Calendar className="h-4 w-4 text-blue-500 mt-1" />
+                    ) : (
+                      <Users className="h-4 w-4 text-green-500 mt-1" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm">{actividad.descripcion}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(actividad.tiempo), "dd/MM/yyyy HH:mm", { locale: es })}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {actividad.estado}
+                  </Badge>
+                </div>
+              ))}
+              {actividadReciente.length === 0 && (
+                <p className="text-center text-muted-foreground py-4">
+                  No hay actividad reciente
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Today's Overview */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            <span>Reservas recientes</span>
-          </CardTitle>
-          <CardDescription>Últimas reservas realizadas en el sistema</CardDescription>
+          <CardTitle>Resumen del Día - {format(new Date(), "EEEE, d 'de' MMMM", { locale: es })}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Tipo</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Mesa</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Hora</TableHead>
-                <TableHead>Personas</TableHead>
+                <TableHead>Detalles</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead>Hora</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recentReservations.map((reservation) => (
-                <TableRow key={reservation.id}>
-                  <TableCell className="font-medium">{reservation.cliente}</TableCell>
-                  <TableCell>{reservation.mesa}</TableCell>
-                  <TableCell>{reservation.fecha}</TableCell>
-                  <TableCell>{reservation.hora}</TableCell>
-                  <TableCell>{reservation.personas}</TableCell>
+              {reservasHoy.map((reserva) => (
+                <TableRow key={reserva.id}>
                   <TableCell>
-                    <span 
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        reservation.estado === 'Confirmada' 
-                          ? 'bg-green-100 text-green-800' 
-                          : reservation.estado === 'Pendiente'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {reservation.estado}
-                    </span>
+                    <Badge variant="outline">Reserva</Badge>
                   </TableCell>
+                  <TableCell>{reserva.nombre}</TableCell>
+                  <TableCell>
+                    {reserva.mesas?.nombre} - {reserva.personas} personas
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={
+                      reserva.estado === 'confirmada' ? 'default' : 
+                      reserva.estado === 'pendiente' ? 'secondary' : 'destructive'
+                    }>
+                      {reserva.estado}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{reserva.hora}</TableCell>
+                </TableRow>
+              ))}
+              {guestListHoy.map((guest) => (
+                <TableRow key={guest.id}>
+                  <TableCell>
+                    <Badge variant="outline" className="bg-green-50">Guest List</Badge>
+                  </TableCell>
+                  <TableCell>{guest.nombre}</TableCell>
+                  <TableCell>{guest.invitados} personas</TableCell>
+                  <TableCell>
+                    <Badge variant={guest.checked_in ? 'default' : 'secondary'}>
+                      {guest.checked_in ? 'Registrado' : 'Pendiente'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>-</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+          {reservasHoy.length === 0 && guestListHoy.length === 0 && (
+            <p className="text-center text-muted-foreground py-8">
+              No hay actividad programada para hoy
+            </p>
+          )}
         </CardContent>
-        <CardFooter className="flex justify-end">
-          <p className="flex items-center text-sm text-muted-foreground">
-            <Clock className="mr-1 h-4 w-4" />
-            Actualizado: 14 de Mayo, 2025 - 14:30
-          </p>
-        </CardFooter>
       </Card>
-
-      {/* Estadísticas adicionales */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              <span>Usuarios registrados</span>
-            </CardTitle>
-            <CardDescription>Últimos 30 días</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">1,248</div>
-            <div className="mt-2 flex items-center text-sm text-emerald-600">
-              <ArrowUp className="mr-1 h-4 w-4" />
-              <span>+15.3% vs. mes anterior</span>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Mesa más reservada</CardTitle>
-            <CardDescription>En el último mes</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Mesa Gold 1</div>
-            <div className="mt-1 text-base">42 reservas este mes</div>
-            <div className="mt-2 flex items-center text-sm text-emerald-600">
-              <ArrowUp className="mr-1 h-4 w-4" />
-              <span>12% más que Mesa Gold 2</span>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Horario más solicitado</CardTitle>
-            <CardDescription>Último mes</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">21:00 - 22:00</div>
-            <div className="mt-1 text-base">186 reservas en este horario</div>
-            <div className="mt-2 flex items-center text-sm text-emerald-600">
-              <ArrowUp className="mr-1 h-4 w-4" />
-              <span>24% de todas las reservas</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 };

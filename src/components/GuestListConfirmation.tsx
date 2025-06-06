@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Check, QrCode, Copy } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { CheckCircle, Calendar, Users, Ticket, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface GuestListConfirmationProps {
@@ -15,7 +15,7 @@ interface GuestListConfirmationProps {
 }
 
 const GuestListConfirmation: React.FC<GuestListConfirmationProps> = ({
-  nombre, 
+  nombre,
   email,
   telefono,
   confirmationCode,
@@ -23,7 +23,7 @@ const GuestListConfirmation: React.FC<GuestListConfirmationProps> = ({
   invitados
 }) => {
   const { toast } = useToast();
-  
+
   const handleCopyCode = () => {
     navigator.clipboard.writeText(confirmationCode);
     toast({
@@ -31,59 +31,130 @@ const GuestListConfirmation: React.FC<GuestListConfirmationProps> = ({
       description: "El código de confirmación ha sido copiado al portapapeles.",
     });
   };
-  
-  // Generar un QR simplificado con el código de confirmación (esto es una simulación, en producción usaría una librería como qrcode.react)
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-    JSON.stringify({
-      code: confirmationCode,
-      name: nombre,
-      email: email
-    })
-  )}`;
-  
+
+  const handleShare = () => {
+    const message = `¡Estoy en la Guest List de The Normal! 🎉\n\nCódigo: ${confirmationCode}\nFecha: ${fecha}\nPersonas: ${invitados}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: 'Guest List - The Normal',
+        text: message
+      });
+    } else {
+      navigator.clipboard.writeText(message);
+      toast({
+        title: "Información copiada",
+        description: "Los detalles han sido copiados al portapapeles.",
+      });
+    }
+  };
+
   return (
-    <Card className="max-w-md mx-auto">
-      <CardHeader className="bg-green-50 dark:bg-green-900/20">
-        <div className="flex items-center justify-center mb-4">
-          <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
-            <Check className="h-6 w-6 text-white" />
-          </div>
-        </div>
-        <CardTitle className="text-center text-green-600 dark:text-green-400">¡Registro Exitoso!</CardTitle>
-        <CardDescription className="text-center">
-          Has sido añadido a nuestra Guest List
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="pt-6">
-        <div className="flex flex-col items-center">
-          <div className="mb-4 p-2 bg-white rounded-lg">
-            <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48" />
-          </div>
-          
-          <div className="border rounded-md p-3 flex items-center justify-between w-full mb-4">
-            <div className="flex items-center">
-              <QrCode className="h-4 w-4 mr-2 text-primary" />
-              <span className="font-mono font-bold">{confirmationCode}</span>
+    <div className="max-w-md mx-auto">
+      <Card>
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="bg-green-100 p-3 rounded-full">
+              <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <Button variant="ghost" size="icon" onClick={handleCopyCode}>
-              <Copy className="h-4 w-4" />
+          </div>
+          <CardTitle className="text-2xl">¡Registro Exitoso!</CardTitle>
+          <CardDescription>
+            Has sido añadido a nuestra Guest List
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Confirmation Code */}
+          <div className="text-center bg-gray-50 p-4 rounded-lg">
+            <div className="text-sm font-medium text-gray-600 mb-1">Código de Confirmación</div>
+            <div className="text-2xl font-mono font-bold text-gray-900 mb-3">
+              {confirmationCode}
+            </div>
+            <Button variant="outline" size="sm" onClick={handleCopyCode}>
+              <Ticket className="mr-2 h-4 w-4" />
+              Copiar Código
             </Button>
           </div>
-          
-          <div className="space-y-2 w-full">
-            <p><strong>Nombre:</strong> {nombre}</p>
-            <p><strong>Fecha:</strong> {fecha}</p>
-            <p><strong>Invitados:</strong> {invitados}</p>
+
+          {/* Details */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <Calendar className="h-5 w-5 text-gray-500" />
+              <div>
+                <div className="font-medium">Fecha</div>
+                <div className="text-sm text-gray-600">{fecha}</div>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              <Users className="h-5 w-5 text-gray-500" />
+              <div>
+                <div className="font-medium">Invitados</div>
+                <div className="text-sm text-gray-600">{invitados} personas</div>
+              </div>
+            </div>
           </div>
-        </div>
-      </CardContent>
-      <CardFooter className="flex flex-col items-center space-y-2">
-        <p className="text-sm text-center text-gray-500">
-          Presenta este código QR en la entrada del club.
-          Al llegar, nuestro staff escaneará tu código para verificar tu registro.
-        </p>
-      </CardFooter>
-    </Card>
+
+          {/* Instructions */}
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h4 className="font-medium text-blue-900 mb-2">Instrucciones Importantes</h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• Presenta este código en la entrada</li>
+              <li>• Llega antes de las 11:30 PM</li>
+              <li>• Trae identificación válida</li>
+              <li>• El código es válido solo para la fecha indicada</li>
+            </ul>
+          </div>
+
+          {/* Contact Info */}
+          <div className="text-center text-sm text-gray-600">
+            <p>Datos registrados:</p>
+            <p>{nombre}</p>
+            <p>{email}</p>
+            <p>{telefono}</p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            <Button onClick={handleShare} className="w-full" variant="outline">
+              <Share2 className="mr-2 h-4 w-4" />
+              Compartir Detalles
+            </Button>
+            
+            <Button 
+              onClick={() => window.location.href = '/'}
+              className="w-full"
+            >
+              Volver al Inicio
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* QR Code placeholder */}
+      <Card className="mt-6">
+        <CardContent className="p-6 text-center">
+          <div className="bg-white p-4 rounded-lg inline-block">
+            <img 
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
+                JSON.stringify({
+                  code: confirmationCode,
+                  name: nombre,
+                  email: email,
+                  date: fecha,
+                  guests: invitados
+                })
+              )}`} 
+              alt="QR Code" 
+              className="w-32 h-32 mx-auto"
+            />
+          </div>
+          <p className="text-sm text-gray-600 mt-3">
+            Escanea este código QR en la entrada
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
