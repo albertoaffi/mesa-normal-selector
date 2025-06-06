@@ -33,6 +33,48 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_config: {
+        Row: {
+          accent_color: string | null
+          background_color: string | null
+          background_image_url: string | null
+          created_at: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          primary_color: string | null
+          secondary_color: string | null
+          text_color: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          background_color?: string | null
+          background_image_url?: string | null
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          text_color?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          background_color?: string | null
+          background_image_url?: string | null
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          text_color?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       codigos_vip: {
         Row: {
           activo: boolean | null

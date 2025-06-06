@@ -1,13 +1,14 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LayoutDashboard, Table, Users, Package, Ticket, Key } from "lucide-react";
+import { LayoutDashboard, Table, Users, Package, Ticket, Key, Palette } from "lucide-react";
 import TableManagement from "@/components/admin/TableManagement";
 import Dashboard from "@/components/admin/Dashboard";
 import UserManagement from "@/components/admin/UserManagement";
 import ProductManagement from "@/components/admin/ProductManagement";
 import GuestListManagement from "@/components/admin/GuestListManagement";
 import VIPCodeManagement from "@/components/admin/VIPCodeManagement";
+import BrandManagement from "@/components/admin/BrandManagement";
 
 const Admin = () => {
   return (
@@ -16,7 +17,7 @@ const Admin = () => {
         <h1 className="text-3xl font-bold mb-8 text-center text-gray-900 dark:text-white">Panel de Administración</h1>
         
         <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-8 bg-gray-100 dark:bg-gray-800">
+          <TabsList className="grid w-full grid-cols-7 mb-8 bg-gray-100 dark:bg-gray-800">
             <TabsTrigger 
               value="dashboard" 
               className="flex items-center gap-2 text-gray-700 dark:text-gray-100 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white"
@@ -59,6 +60,13 @@ const Admin = () => {
               <Key className="w-4 h-4" />
               <span className="hidden sm:inline">Códigos VIP</span>
             </TabsTrigger>
+            <TabsTrigger 
+              value="brand" 
+              className="flex items-center gap-2 text-gray-700 dark:text-gray-100 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white"
+            >
+              <Palette className="w-4 h-4" />
+              <span className="hidden sm:inline">Marca</span>
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="dashboard">
@@ -83,6 +91,10 @@ const Admin = () => {
           
           <TabsContent value="vipcodes">
             <VIPCodeManagement />
+          </TabsContent>
+          
+          <TabsContent value="brand">
+            <BrandManagement />
           </TabsContent>
         </Tabs>
       </div>

@@ -5,9 +5,14 @@ import { Button } from "@/components/ui/button";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import RefundDialog from '@/components/RefundDialog';
+import { useBrand } from '@/contexts/BrandContext';
 
 const Home = () => {
   const navigate = useNavigate();
+  const { config } = useBrand();
+
+  const brandName = config?.name || 'THE NORMAL';
+  const backgroundImage = config?.background_image_url || "url('https://images.unsplash.com/photo-1566737236500-c8ac43014a67?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1950&q=80')";
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -20,13 +25,20 @@ const Home = () => {
           <div 
             className="absolute inset-0 bg-cover bg-center"
             style={{ 
-              backgroundImage: "url('https://images.unsplash.com/photo-1566737236500-c8ac43014a67?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1950&q=80')" 
+              backgroundImage: backgroundImage.startsWith('http') ? `url('${backgroundImage}')` : backgroundImage
             }}
           ></div>
           
           <div className="container mx-auto px-6 relative z-20 text-center">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 text-white">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-amber-600">THE NORMAL</span>
+              <span 
+                className="bg-clip-text text-transparent bg-gradient-to-r"
+                style={{ 
+                  backgroundImage: `linear-gradient(to right, ${config?.primary_color || '#FFD700'}, ${config?.secondary_color || '#9932CC'})` 
+                }}
+              >
+                {brandName}
+              </span>
             </h1>
             <p className="text-xl md:text-2xl text-white/90 mb-10 max-w-3xl mx-auto font-light">
               La mejor experiencia nocturna con reservas de mesa VIP y servicio personalizado
@@ -37,6 +49,10 @@ const Home = () => {
                 size="xl"
                 className="rounded-md"
                 onClick={() => navigate('/reservar')}
+                style={{
+                  backgroundColor: config?.primary_color || undefined,
+                  color: '#000000'
+                }}
               >
                 Reservar Ahora
               </Button>
@@ -45,6 +61,10 @@ const Home = () => {
                 size="xl"
                 className="rounded-md"
                 onClick={() => navigate('/guest-list')}
+                style={{
+                  backgroundColor: config?.secondary_color || undefined,
+                  color: '#FFFFFF'
+                }}
               >
                 Guest List
               </Button>
@@ -58,14 +78,29 @@ const Home = () => {
         {/* Features Section */}
         <section className="py-20 bg-gradient-to-b from-black to-gray-900">
           <div className="container mx-auto px-6 mb-16">
-            <h2 className="text-4xl font-bold mb-16 text-center bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-amber-600">
+            <h2 
+              className="text-4xl font-bold mb-16 text-center bg-clip-text text-transparent bg-gradient-to-r"
+              style={{ 
+                backgroundImage: `linear-gradient(to right, ${config?.primary_color || '#FFD700'}, ${config?.secondary_color || '#9932CC'})` 
+              }}
+            >
               Una experiencia exclusiva
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-              <div className="backdrop-blur-lg bg-black/40 p-8 rounded-xl border border-gray-800 hover:border-amber-500/50 transition-all shadow-lg hover:shadow-xl hover:shadow-amber-500/5">
-                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-amber-600/20 to-amber-400/10 flex items-center justify-center mb-6">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div 
+                className="backdrop-blur-lg bg-black/40 p-8 rounded-xl border border-gray-800 hover:border-amber-500/50 transition-all shadow-lg hover:shadow-xl hover:shadow-amber-500/5"
+                style={{
+                  borderColor: `${config?.primary_color || '#FFD700'}30`
+                }}
+              >
+                <div 
+                  className="h-14 w-14 rounded-full bg-gradient-to-br from-amber-600/20 to-amber-400/10 flex items-center justify-center mb-6"
+                  style={{
+                    background: `linear-gradient(to bottom right, ${config?.primary_color || '#FFD700'}20, ${config?.primary_color || '#FFD700'}10)`
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" style={{ color: config?.primary_color || '#FFD700' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z" />
                   </svg>
                 </div>
@@ -73,9 +108,19 @@ const Home = () => {
                 <p className="text-gray-400 text-lg">Selecciona entre diferentes categorías de mesas según tu presupuesto y preferencias.</p>
               </div>
               
-              <div className="backdrop-blur-lg bg-black/40 p-8 rounded-xl border border-gray-800 hover:border-amber-500/50 transition-all shadow-lg hover:shadow-xl hover:shadow-amber-500/5">
-                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-amber-600/20 to-amber-400/10 flex items-center justify-center mb-6">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div 
+                className="backdrop-blur-lg bg-black/40 p-8 rounded-xl border border-gray-800 hover:border-amber-500/50 transition-all shadow-lg hover:shadow-xl hover:shadow-amber-500/5"
+                style={{
+                  borderColor: `${config?.primary_color || '#FFD700'}30`
+                }}
+              >
+                <div 
+                  className="h-14 w-14 rounded-full bg-gradient-to-br from-amber-600/20 to-amber-400/10 flex items-center justify-center mb-6"
+                  style={{
+                    background: `linear-gradient(to bottom right, ${config?.primary_color || '#FFD700'}20, ${config?.primary_color || '#FFD700'}10)`
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" style={{ color: config?.primary_color || '#FFD700' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
                 </div>
@@ -83,9 +128,19 @@ const Home = () => {
                 <p className="text-gray-400 text-lg">Selecciona tus bebidas y alimentos favoritos para que estén listos al llegar.</p>
               </div>
               
-              <div className="backdrop-blur-lg bg-black/40 p-8 rounded-xl border border-gray-800 hover:border-amber-500/50 transition-all shadow-lg hover:shadow-xl hover:shadow-amber-500/5">
-                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-amber-600/20 to-amber-400/10 flex items-center justify-center mb-6">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div 
+                className="backdrop-blur-lg bg-black/40 p-8 rounded-xl border border-gray-800 hover:border-amber-500/50 transition-all shadow-lg hover:shadow-xl hover:shadow-amber-500/5"
+                style={{
+                  borderColor: `${config?.primary_color || '#FFD700'}30`
+                }}
+              >
+                <div 
+                  className="h-14 w-14 rounded-full bg-gradient-to-br from-amber-600/20 to-amber-400/10 flex items-center justify-center mb-6"
+                  style={{
+                    background: `linear-gradient(to bottom right, ${config?.primary_color || '#FFD700'}20, ${config?.primary_color || '#FFD700'}10)`
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" style={{ color: config?.primary_color || '#FFD700' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
@@ -104,7 +159,7 @@ const Home = () => {
               ¿Listo para una noche inolvidable?
             </h2>
             <p className="text-gray-300 mb-10 max-w-2xl mx-auto text-xl">
-              Reserva ahora tu mesa en The Normal y disfruta de la mejor experiencia nocturna. 
+              Reserva ahora tu mesa en {brandName} y disfruta de la mejor experiencia nocturna. 
               Elige tus bebidas favoritas y tenlas listas en tu mesa al llegar.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
@@ -113,6 +168,10 @@ const Home = () => {
                 size="lg" 
                 className="px-8 py-6 text-lg font-semibold rounded-md"
                 onClick={() => navigate('/reservar')}
+                style={{
+                  backgroundColor: config?.primary_color || undefined,
+                  color: '#000000'
+                }}
               >
                 Reservar Mesa
               </Button>
@@ -121,6 +180,10 @@ const Home = () => {
                 size="lg"
                 className="px-8 py-6 text-lg font-semibold rounded-md"
                 onClick={() => navigate('/guest-list')}
+                style={{
+                  backgroundColor: config?.secondary_color || undefined,
+                  color: '#FFFFFF'
+                }}
               >
                 Entrar en Guest List
               </Button>
