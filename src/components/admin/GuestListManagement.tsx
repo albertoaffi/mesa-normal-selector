@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,116 +12,143 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from '@/integrations/supabase/client';
 
-interface Invitado {
-  id: number;
+interface GuestListEntry {
+  id: string;
   nombre: string;
   email: string;
   telefono: string;
-  fecha: Date;
+  fecha: string;
   invitados: number;
   codigo: string;
-  checkedIn: boolean;
+  checked_in: boolean;
+  created_at: string;
 }
 
 const GuestListManagement = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedGuest, setSelectedGuest] = useState<Invitado | null>(null);
+  const [selectedGuest, setSelectedGuest] = useState<GuestListEntry | null>(null);
   const [showQRCode, setShowQRCode] = useState(false);
   const [guestListLimit, setGuestListLimit] = useState(80);
   
-  // Datos de ejemplo
-  const [invitados, setInvitados] = useState<Invitado[]>([
-    {
-      id: 1,
-      nombre: "Carlos Rodríguez",
-      email: "carlos@example.com",
-      telefono: "555-123-4567",
-      fecha: new Date(2025, 4, 17),
-      invitados: 2,
-      codigo: "GL-25051701",
-      checkedIn: false
-    },
-    {
-      id: 2,
-      nombre: "Ana López",
-      email: "ana@example.com",
-      telefono: "555-987-6543",
-      fecha: new Date(2025, 4, 17),
-      invitados: 1,
-      codigo: "GL-25051702",
-      checkedIn: false
-    },
-    {
-      id: 3,
-      nombre: "Miguel Hernández",
-      email: "miguel@example.com",
-      telefono: "555-456-7890",
-      fecha: new Date(2025, 4, 18),
-      invitados: 3,
-      codigo: "GL-25051801",
-      checkedIn: false
+  // Fetch guest list data from Supabase
+  const { data: guestList = [], isLoading } = useQuery({
+    queryKey: ['guest-list-admin'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('guest_list')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching guest list:', error);
+        throw error;
+      }
+      
+      return data || [];
     }
-  ]);
+  });
+
+  // Update check-in status mutation
+  const checkInMutation = useMutation({
+    mutationFn: async ({ id, checked_in }: { id: string; checked_in: boolean }) => {
+      const { error } = await supabase
+        .from('guest_list')
+        .update({ checked_in: !checked_in })
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guest-list-admin'] });
+    }
+  });
+
+  // Delete guest mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('guest_list')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guest-list-admin'] });
+    }
+  });
   
-  const totalInvitados = invitados.reduce((sum, inv) => sum + inv.invitados, 0);
+  // Calculate total guests correctly
+  const totalInvitados = guestList.reduce((sum, entry) => sum + entry.invitados, 0);
   
-  // Filtrar por búsqueda y por fecha
-  const filteredGuests = invitados.filter(inv => {
+  // Filter by search and date
+  const filteredGuests = guestList.filter(entry => {
     const matchesSearch = 
-      inv.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      inv.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inv.codigo.toLowerCase().includes(searchTerm.toLowerCase());
+      entry.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      entry.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.codigo.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesDate = selectedDate 
-      ? inv.fecha.toDateString() === selectedDate.toDateString()
+      ? new Date(entry.fecha).toDateString() === selectedDate.toDateString()
       : true;
     
     return matchesSearch && matchesDate;
   });
   
-  const handleCheckIn = (id: number) => {
-    const updatedGuests = invitados.map(inv => 
-      inv.id === id ? { ...inv, checkedIn: !inv.checkedIn } : inv
-    );
-    
-    setInvitados(updatedGuests);
-    
-    const guest = invitados.find(inv => inv.id === id);
-    if (guest) {
-      toast({
-        title: guest.checkedIn ? "Check-in revertido" : "Check-in confirmado",
-        description: `${guest.nombre} ha sido ${guest.checkedIn ? 'revertido' : 'registrado'} exitosamente.`,
-      });
-    }
+  const handleCheckIn = (entry: GuestListEntry) => {
+    checkInMutation.mutate({ id: entry.id, checked_in: entry.checked_in }, {
+      onSuccess: () => {
+        toast({
+          title: entry.checked_in ? "Check-in revertido" : "Check-in confirmado",
+          description: `${entry.nombre} ha sido ${entry.checked_in ? 'revertido' : 'registrado'} exitosamente.`,
+        });
+      },
+      onError: () => {
+        toast({
+          title: "Error",
+          description: "No se pudo actualizar el estado del invitado.",
+          variant: "destructive"
+        });
+      }
+    });
   };
   
-  const handleDelete = (id: number) => {
-    const guest = invitados.find(inv => inv.id === id);
-    setInvitados(invitados.filter(inv => inv.id !== id));
-    
-    if (guest) {
-      toast({
-        title: "Invitado eliminado",
-        description: `${guest.nombre} ha sido eliminado de la lista de invitados.`,
-      });
-    }
+  const handleDelete = (entry: GuestListEntry) => {
+    deleteMutation.mutate(entry.id, {
+      onSuccess: () => {
+        toast({
+          title: "Invitado eliminado",
+          description: `${entry.nombre} ha sido eliminado de la lista de invitados.`,
+        });
+      },
+      onError: () => {
+        toast({
+          title: "Error",
+          description: "No se pudo eliminar el invitado.",
+          variant: "destructive"
+        });
+      }
+    });
   };
   
-  const handleViewQR = (guest: Invitado) => {
-    setSelectedGuest(guest);
+  const handleViewQR = (entry: GuestListEntry) => {
+    setSelectedGuest(entry);
     setShowQRCode(true);
   };
-  
-  const generateRandomCode = () => {
-    const date = new Date();
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const randomDigits = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    return `GL-${date.getFullYear().toString().slice(2)}${month}${day}${randomDigits}`;
-  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Cargando lista de invitados...</div>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">
@@ -226,7 +252,7 @@ const GuestListManagement = () => {
                               <div className="text-sm text-muted-foreground">{guest.email}</div>
                             </div>
                           </TableCell>
-                          <TableCell>{format(guest.fecha, "dd/MM/yyyy")}</TableCell>
+                          <TableCell>{format(new Date(guest.fecha), "dd/MM/yyyy")}</TableCell>
                           <TableCell>
                             <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
                               {guest.codigo}
@@ -235,22 +261,22 @@ const GuestListManagement = () => {
                           <TableCell>{guest.invitados}</TableCell>
                           <TableCell>
                             <div className={`px-2 py-1 rounded-full text-xs inline-block ${
-                              guest.checkedIn 
+                              guest.checked_in 
                                 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
                                 : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
                             }`}>
-                              {guest.checkedIn ? 'Registrado' : 'Pendiente'}
+                              {guest.checked_in ? 'Registrado' : 'Pendiente'}
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end">
-                              <Button variant="ghost" size="icon" onClick={() => handleCheckIn(guest.id)}>
-                                <ClipboardCheck className={`h-4 w-4 ${guest.checkedIn ? 'text-green-500' : ''}`} />
+                              <Button variant="ghost" size="icon" onClick={() => handleCheckIn(guest)}>
+                                <ClipboardCheck className={`h-4 w-4 ${guest.checked_in ? 'text-green-500' : ''}`} />
                               </Button>
                               <Button variant="ghost" size="icon" onClick={() => handleViewQR(guest)}>
                                 <QrCode className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleDelete(guest.id)}>
+                              <Button variant="ghost" size="icon" onClick={() => handleDelete(guest)}>
                                 <Trash className="h-4 w-4 text-red-500" />
                               </Button>
                             </div>
@@ -312,11 +338,11 @@ const GuestListManagement = () => {
                                   <TableCell>{guest.invitados}</TableCell>
                                   <TableCell>
                                     <div className={`px-2 py-1 rounded-full text-xs inline-block ${
-                                      guest.checkedIn 
+                                      guest.checked_in 
                                         ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
                                         : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
                                     }`}>
-                                      {guest.checkedIn ? 'Registrado' : 'Pendiente'}
+                                      {guest.checked_in ? 'Registrado' : 'Pendiente'}
                                     </div>
                                   </TableCell>
                                 </TableRow>
@@ -360,6 +386,7 @@ const GuestListManagement = () => {
             </TabsContent>
           </Tabs>
           
+          {/* QR Code Modal */}
           {selectedGuest && showQRCode && (
             <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
               <Card className="max-w-md w-full">
