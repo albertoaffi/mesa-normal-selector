@@ -347,7 +347,7 @@ const TableManagement = () => {
   return <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Gestión de Mesas</h2>
+          <h2 className="text-xl font-semibold text-zinc-800">Gestión de Mesas</h2>
           <div className="flex gap-2">
             <Button onClick={() => setSaveTemplateDialog(true)} variant="outline" className="text-gray-950">
               <Save className="mr-2 h-4 w-4" />
