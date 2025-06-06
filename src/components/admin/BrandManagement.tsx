@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,7 @@ const BrandManagement = () => {
 
   useEffect(() => {
     if (config) {
-      console.log('Config loaded:', config);
+      console.log('Config loaded in component:', config);
       setFormData({
         name: config.name || 'THE NORMAL',
         logo_url: config.logo_url || '',
@@ -47,10 +46,7 @@ const BrandManagement = () => {
 
   const handleSave = async () => {
     console.log('Saving changes with data:', formData);
-    if (!config) {
-      console.error('No config available for saving');
-      return;
-    }
+    console.log('Current config:', config);
     
     await updateConfig({
       name: formData.name,
@@ -109,6 +105,16 @@ const BrandManagement = () => {
           </Button>
         </div>
       </div>
+
+      {/* Debug info */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardContent className="pt-6">
+          <div className="text-sm text-gray-300">
+            <p>Config ID: {config?.id || 'No config'}</p>
+            <p>Config status: {config ? 'Loaded' : 'Not loaded'}</p>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Información General */}

@@ -22,89 +22,111 @@ export const useBrandConfig = () => {
 
   const fetchConfig = async () => {
     try {
+      console.log('Fetching brand config...');
       const { data, error } = await supabase
         .from('brand_config')
         .select('*')
         .limit(1);
 
+      console.log('Fetch result:', { data, error });
+
       if (error) {
         console.error('Error fetching brand config:', error);
-        // Create default config if none exists
-        await createDefaultConfig();
         return;
       }
 
       if (data && data.length > 0) {
+        console.log('Config found:', data[0]);
         setConfig(data[0]);
       } else {
-        // No data found, create default
-        await createDefaultConfig();
+        console.log('No config found, using defaults');
+        // Si no hay config, usar valores por defecto sin crear en BD
+        const defaultConfig: BrandConfig = {
+          id: 'default',
+          name: 'THE NORMAL',
+          logo_url: null,
+          background_image_url: null,
+          primary_color: '#FFD700',
+          secondary_color: '#9932CC',
+          accent_color: '#FF2400',
+          text_color: '#FFFFFF',
+          background_color: '#000000'
+        };
+        setConfig(defaultConfig);
       }
     } catch (error) {
       console.error('Error in fetchConfig:', error);
-      // Create default config if there's an error
-      await createDefaultConfig();
     } finally {
       setLoading(false);
-    }
-  };
-
-  const createDefaultConfig = async () => {
-    try {
-      const defaultConfig = {
-        name: 'THE NORMAL',
-        primary_color: '#FFD700',
-        secondary_color: '#9932CC',
-        accent_color: '#FF2400',
-        text_color: '#FFFFFF',
-        background_color: '#000000'
-      };
-
-      const { data, error } = await supabase
-        .from('brand_config')
-        .insert([defaultConfig])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating default config:', error);
-        return;
-      }
-
-      setConfig(data);
-    } catch (error) {
-      console.error('Error creating default config:', error);
     }
   };
 
   const updateConfig = async (updates: Partial<BrandConfig>) => {
     if (!config) {
       console.error('No config to update');
+      toast({
+        title: "Error",
+        description: "No hay configuración disponible para actualizar.",
+        variant: "destructive",
+      });
       return;
     }
 
     try {
       console.log('Updating config with:', updates);
       
-      const { data, error } = await supabase
-        .from('brand_config')
-        .update(updates)
-        .eq('id', config.id)
-        .select()
-        .single();
+      if (config.id === 'default') {
+        // Si es config por defecto, crear nuevo registro
+        const { data, error } = await supabase
+          .from('brand_config')
+          .insert([{
+            name: updates.name || config.name,
+            logo_url: updates.logo_url !== undefined ? updates.logo_url : config.logo_url,
+            background_image_url: updates.background_image_url !== undefined ? updates.background_image_url : config.background_image_url,
+            primary_color: updates.primary_color || config.primary_color,
+            secondary_color: updates.secondary_color || config.secondary_color,
+            accent_color: updates.accent_color || config.accent_color,
+            text_color: updates.text_color || config.text_color,
+            background_color: updates.background_color || config.background_color
+          }])
+          .select()
+          .single();
 
-      if (error) {
-        console.error('Error updating brand config:', error);
-        toast({
-          title: "Error",
-          description: "No se pudo actualizar la configuración: " + error.message,
-          variant: "destructive",
-        });
-        return;
+        if (error) {
+          console.error('Error creating brand config:', error);
+          toast({
+            title: "Error",
+            description: "No se pudo crear la configuración: " + error.message,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        console.log('Config created successfully:', data);
+        setConfig(data);
+      } else {
+        // Actualizar registro existente
+        const { data, error } = await supabase
+          .from('brand_config')
+          .update(updates)
+          .eq('id', config.id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error updating brand config:', error);
+          toast({
+            title: "Error",
+            description: "No se pudo actualizar la configuración: " + error.message,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        console.log('Config updated successfully:', data);
+        setConfig(data);
       }
 
-      console.log('Config updated successfully:', data);
-      setConfig(data);
       toast({
         title: "Configuración actualizada",
         description: "Los cambios se han guardado exitosamente.",
