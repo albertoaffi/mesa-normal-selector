@@ -416,7 +416,7 @@ const TableManagement = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {savedTemplates.map((template: any) => <div key={template.id} className="border rounded-md p-3 flex flex-col">
                   <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium text-sm">{template.name}</h4>
+                    <h4 className="font-medium text-sm text-zinc-950">{template.name}</h4>
                     <div className="flex space-x-1">
                       <Button variant="ghost" size="sm" onClick={() => loadTemplate(template)}>
                         <LayoutTemplate className="h-4 w-4" />
