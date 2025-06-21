@@ -144,7 +144,7 @@ const AdminTableMap: React.FC<AdminTableMapProps> = ({
         const count = tables.filter(t => t.categoria === categoria).length;
         return <div key={categoria} className="text-center p-3 border rounded-lg">
               <div className={`w-4 h-4 rounded-full mx-auto mb-1 ${getCategoryColor(categoria).split(' ')[0]}`}></div>
-              <div className="text-sm font-medium capitalize">{categoria}</div>
+              <div className="text-sm font-medium capitalize bg-zinc-950">{categoria}</div>
               <div className="text-xs text-gray-600">{count} mesas</div>
             </div>;
       })}
