@@ -14,6 +14,14 @@ interface QRCodeModalProps {
 const QRCodeModal = ({ guest, isOpen, onClose }: QRCodeModalProps) => {
   if (!isOpen || !guest) return null;
 
+  const getStatusColor = (status: boolean) => {
+    return status ? "bg-green-500" : "bg-yellow-500";
+  };
+
+  const getStatusText = (status: boolean) => {
+    return status ? "REGISTRADO" : "PENDIENTE";
+  };
+
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
       <Card className="max-w-md w-full">
@@ -21,8 +29,11 @@ const QRCodeModal = ({ guest, isOpen, onClose }: QRCodeModalProps) => {
           <CardTitle>Código QR para {guest.nombre}</CardTitle>
           <CardDescription>Código: {guest.codigo}</CardDescription>
           <div className="flex items-center gap-2 mt-2">
-            <Badge variant={guest.checked_in ? "default" : "secondary"}>
-              {guest.checked_in ? 'Registrado' : 'Pendiente'}
+            <Badge 
+              variant={guest.checked_in ? "default" : "secondary"}
+              className={`${getStatusColor(guest.checked_in)} text-white font-bold`}
+            >
+              {getStatusText(guest.checked_in)}
             </Badge>
             <span className="text-sm text-muted-foreground">
               {guest.invitados} invitado{guest.invitados > 1 ? 's' : ''}
@@ -38,7 +49,7 @@ const QRCodeModal = ({ guest, isOpen, onClose }: QRCodeModalProps) => {
                   name: guest.nombre,
                   email: guest.email,
                   guests: guest.invitados,
-                  status: guest.checked_in ? 'registered' : 'pending',
+                  status: guest.checked_in ? 'REGISTRADO' : 'PENDIENTE',
                   date: guest.fecha
                 })
               )}`} 
@@ -52,7 +63,14 @@ const QRCodeModal = ({ guest, isOpen, onClose }: QRCodeModalProps) => {
             <div><strong>Email:</strong> {guest.email}</div>
             <div><strong>Teléfono:</strong> {guest.telefono}</div>
             <div><strong>Fecha:</strong> {new Date(guest.fecha).toLocaleDateString()}</div>
-            <div><strong>Estado:</strong> {guest.checked_in ? 'Registrado' : 'Pendiente de llegada'}</div>
+            <div className="flex items-center gap-2">
+              <strong>Estado:</strong> 
+              <Badge 
+                className={`${getStatusColor(guest.checked_in)} text-white text-xs px-2 py-1`}
+              >
+                {getStatusText(guest.checked_in)}
+              </Badge>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-end">

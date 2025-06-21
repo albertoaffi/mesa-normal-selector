@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, Package, DollarSign } from "lucide-react";
+import { Plus, Edit, Trash2, Package, DollarSign, Upload, FileSpreadsheet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseProductos } from "@/hooks/useSupabaseProductos";
 
@@ -16,6 +16,7 @@ const ProductManagement = () => {
   const { productos, loading, createProducto, updateProducto, deleteProducto } = useSupabaseProductos();
   
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [formData, setFormData] = useState({
     nombre: '',
@@ -73,6 +74,7 @@ const ProductManagement = () => {
       resetForm();
       setShowForm(false);
     } catch (error) {
+      console.error('Error saving product:', error);
       toast({
         title: "Error",
         description: "Hubo un problema al guardar el producto.",
@@ -82,6 +84,7 @@ const ProductManagement = () => {
   };
 
   const handleEdit = (product: any) => {
+    console.log('Editing product:', product);
     setEditingProduct(product);
     setFormData({
       nombre: product.nombre,
@@ -100,9 +103,9 @@ const ProductManagement = () => {
         toast({
           title: "Producto eliminado",
           description: `${nombre} ha sido eliminado correctamente.`,
-          variant: "destructive"
         });
       } catch (error) {
+        console.error('Error deleting product:', error);
         toast({
           title: "Error",
           description: "Hubo un problema al eliminar el producto.",
@@ -110,6 +113,77 @@ const ProductManagement = () => {
         });
       }
     }
+  };
+
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target?.result as string;
+        const lines = text.split('\n');
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+        
+        // Verificar que el CSV tenga las columnas necesarias
+        const requiredHeaders = ['nombre', 'precio', 'categoria'];
+        const hasRequired = requiredHeaders.every(h => headers.includes(h));
+        
+        if (!hasRequired) {
+          toast({
+            title: "Error en el archivo",
+            description: "El archivo debe contener las columnas: nombre, precio, categoria",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        let importedCount = 0;
+        
+        for (let i = 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue;
+          
+          const values = lines[i].split(',').map(v => v.trim());
+          const row: any = {};
+          
+          headers.forEach((header, index) => {
+            row[header] = values[index] || '';
+          });
+
+          if (row.nombre && row.precio && row.categoria) {
+            try {
+              await createProducto({
+                nombre: row.nombre,
+                precio: parseInt(row.precio),
+                categoria: row.categoria,
+                imagen: row.imagen || '',
+                descripcion: row.descripcion || ''
+              });
+              importedCount++;
+            } catch (error) {
+              console.error(`Error importing product ${row.nombre}:`, error);
+            }
+          }
+        }
+
+        toast({
+          title: "Importación completada",
+          description: `Se importaron ${importedCount} productos exitosamente.`
+        });
+        
+        setShowImport(false);
+      } catch (error) {
+        console.error('Error importing file:', error);
+        toast({
+          title: "Error",
+          description: "Hubo un problema al importar el archivo.",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    reader.readAsText(file);
   };
 
   const resetForm = () => {
@@ -156,10 +230,16 @@ const ProductManagement = () => {
                 Administra los productos disponibles para reservas
               </CardDescription>
             </div>
-            <Button onClick={() => setShowForm(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Nuevo Producto
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowImport(true)}>
+                <Upload className="mr-2 h-4 w-4" />
+                Importar CSV
+              </Button>
+              <Button onClick={() => setShowForm(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Nuevo Producto
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -364,6 +444,44 @@ const ProductManagement = () => {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import Dialog */}
+      <Dialog open={showImport} onOpenChange={setShowImport}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5" />
+              Importar Productos desde CSV
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="csvFile">Archivo CSV</Label>
+              <Input
+                id="csvFile"
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                onChange={handleFileImport}
+              />
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p className="font-medium mb-2">Formato requerido:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>nombre (obligatorio)</li>
+                <li>precio (obligatorio)</li>
+                <li>categoria (obligatorio)</li>
+                <li>imagen (opcional)</li>
+                <li>descripcion (opcional)</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowImport(false)}>
+              Cancelar
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

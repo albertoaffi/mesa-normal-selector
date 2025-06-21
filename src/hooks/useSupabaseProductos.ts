@@ -1,7 +1,18 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Producto } from '@/components/ProductCard';
+
+interface Producto {
+  id: number;
+  nombre: string;
+  precio: number;
+  categoria: string;
+  imagen?: string;
+  descripcion?: string;
+  disponible: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export const useSupabaseProductos = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -11,10 +22,14 @@ export const useSupabaseProductos = () => {
   const fetchProductos = async () => {
     try {
       setLoading(true);
+      console.log('Fetching productos...');
+      
       const { data, error } = await supabase
         .from('productos')
         .select('*')
-        .order('id');
+        .order('created_at', { ascending: false });
+
+      console.log('Productos fetch result:', { data, error });
 
       if (error) {
         console.error('Error fetching productos:', error);
@@ -22,16 +37,8 @@ export const useSupabaseProductos = () => {
         return;
       }
 
-      const productosFormatted: Producto[] = data.map(producto => ({
-        id: producto.id,
-        nombre: producto.nombre,
-        precio: producto.precio,
-        categoria: producto.categoria,
-        imagen: producto.imagen || '',
-        descripcion: producto.descripcion || ''
-      }));
-
-      setProductos(productosFormatted);
+      setProductos(data || []);
+      setError(null);
     } catch (err) {
       console.error('Error in fetchProductos:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -44,22 +51,28 @@ export const useSupabaseProductos = () => {
     fetchProductos();
   }, []);
 
-  const createProducto = async (producto: Omit<Producto, 'id'>) => {
+  const createProducto = async (producto: Omit<Producto, 'id' | 'created_at' | 'updated_at' | 'disponible'>) => {
     try {
+      console.log('Creating producto:', producto);
       const { data, error } = await supabase
         .from('productos')
         .insert({
           nombre: producto.nombre,
           precio: producto.precio,
           categoria: producto.categoria,
-          imagen: producto.imagen,
-          descripcion: producto.descripcion
+          imagen: producto.imagen || null,
+          descripcion: producto.descripcion || null,
+          disponible: true
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating producto:', error);
+        throw error;
+      }
 
+      console.log('Producto created successfully:', data);
       await fetchProductos();
       return data;
     } catch (error) {
@@ -70,6 +83,7 @@ export const useSupabaseProductos = () => {
 
   const updateProducto = async (id: number, updates: Partial<Producto>) => {
     try {
+      console.log('Updating producto:', id, updates);
       const { error } = await supabase
         .from('productos')
         .update({
@@ -77,12 +91,17 @@ export const useSupabaseProductos = () => {
           precio: updates.precio,
           categoria: updates.categoria,
           imagen: updates.imagen,
-          descripcion: updates.descripcion
+          descripcion: updates.descripcion,
+          disponible: updates.disponible
         })
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating producto:', error);
+        throw error;
+      }
 
+      console.log('Producto updated successfully');
       await fetchProductos();
     } catch (error) {
       console.error('Error updating producto:', error);
@@ -92,13 +111,18 @@ export const useSupabaseProductos = () => {
 
   const deleteProducto = async (id: number) => {
     try {
+      console.log('Deleting producto:', id);
       const { error } = await supabase
         .from('productos')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting producto:', error);
+        throw error;
+      }
 
+      console.log('Producto deleted successfully');
       await fetchProductos();
     } catch (error) {
       console.error('Error deleting producto:', error);
