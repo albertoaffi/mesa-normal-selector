@@ -493,7 +493,7 @@ const TableManagement = () => {
         
         {/* Background Image Upload */}
         <div className="mb-6 p-4 border border-dashed rounded-lg">
-          <h3 className="text-lg font-medium mb-2">Imagen de Fondo</h3>
+          <h3 className="text-lg font-medium mb-2 text-zinc-950">Imagen de Fondo</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
             Sube una imagen del plano del local para posicionar las mesas.
           </p>
