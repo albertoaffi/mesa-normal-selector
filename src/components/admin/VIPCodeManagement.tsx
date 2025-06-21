@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { PlusCircle, Trash2, Users, Clock, Check, X } from "lucide-react";
+import { PlusCircle, Trash2, Users, Clock, Upload } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ const VIPCodeManagement = () => {
   const [isCreating, setIsCreating] = useState(false);
   
   const addVIPCode = async () => {
-    if (!newCode || !newDescription) {
+    if (!newCode.trim() || !newDescription.trim()) {
       toast({
         title: "Campos incompletos",
         description: "El código y la descripción son obligatorios.",
@@ -31,7 +31,7 @@ const VIPCodeManagement = () => {
     }
     
     // Verificar que el código no exista ya
-    if (codigos.some(code => code.codigo === newCode.toUpperCase())) {
+    if (codigos.some(code => code.codigo.toLowerCase() === newCode.toLowerCase().trim())) {
       toast({
         title: "Código duplicado",
         description: "Este código VIP ya existe.",
@@ -44,8 +44,8 @@ const VIPCodeManagement = () => {
     
     try {
       await createCodigo({
-        codigo: newCode,
-        descripcion: newDescription,
+        codigo: newCode.trim().toUpperCase(),
+        descripcion: newDescription.trim(),
         activo: true,
         fecha_expiracion: expirationDate || null,
         usos_maximos: maxUses ? parseInt(maxUses) : null
@@ -59,9 +59,10 @@ const VIPCodeManagement = () => {
       
       toast({
         title: "Código VIP creado",
-        description: `El código ${newCode} ha sido creado exitosamente.`
+        description: `El código ${newCode.toUpperCase()} ha sido creado exitosamente.`
       });
     } catch (error) {
+      console.error('Error creating VIP code:', error);
       toast({
         title: "Error",
         description: "Hubo un problema al crear el código VIP.",
@@ -84,6 +85,7 @@ const VIPCodeManagement = () => {
         });
       }
     } catch (error) {
+      console.error('Error updating VIP code:', error);
       toast({
         title: "Error",
         description: "Hubo un problema al actualizar el código.",
@@ -93,17 +95,21 @@ const VIPCodeManagement = () => {
   };
   
   const deleteCode = async (id: string) => {
+    const code = codigos.find(c => c.id === id);
+    if (!code) return;
+    
+    if (!confirm(`¿Estás seguro de que deseas eliminar el código "${code.codigo}"?`)) {
+      return;
+    }
+    
     try {
-      const code = codigos.find(c => c.id === id);
       await deleteCodigo(id);
-      
-      if (code) {
-        toast({
-          title: "Código eliminado",
-          description: `El código ${code.codigo} ha sido eliminado exitosamente.`
-        });
-      }
+      toast({
+        title: "Código eliminado",
+        description: `El código ${code.codigo} ha sido eliminado exitosamente.`
+      });
     } catch (error) {
+      console.error('Error deleting VIP code:', error);
       toast({
         title: "Error",
         description: "Hubo un problema al eliminar el código.",
@@ -136,6 +142,7 @@ const VIPCodeManagement = () => {
                 placeholder="Código VIP"
                 value={newCode}
                 onChange={(e) => setNewCode(e.target.value)}
+                maxLength={20}
               />
             </div>
             <div>
@@ -149,6 +156,7 @@ const VIPCodeManagement = () => {
               <Input
                 placeholder="Límite de usos (opcional)"
                 type="number"
+                min="1"
                 value={maxUses}
                 onChange={(e) => setMaxUses(e.target.value)}
               />
@@ -168,63 +176,70 @@ const VIPCodeManagement = () => {
             {isCreating ? 'Creando...' : 'Crear Código VIP'}
           </Button>
           
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Código</TableHead>
-                <TableHead>Descripción</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Usos</TableHead>
-                <TableHead>Expiración</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {codigos.map((code) => (
-                <TableRow key={code.id}>
-                  <TableCell className="font-medium">{code.codigo}</TableCell>
-                  <TableCell>{code.descripcion}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Switch 
-                        checked={code.activo} 
-                        onCheckedChange={() => toggleCodeStatus(code.id, code.activo)} 
-                      />
-                      <Badge variant={code.activo ? "default" : "secondary"}>
-                        {code.activo ? 'Activo' : 'Inactivo'}
-                      </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>{code.usos_actuales}</span>
-                      {code.usos_maximos && (
-                        <span className="text-xs text-muted-foreground">
-                          /{code.usos_maximos}
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {code.fecha_expiracion ? (
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span>{code.fecha_expiracion}</span>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">Sin expiración</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => deleteCode(code.id)}>
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </TableCell>
+          {codigos.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No hay códigos VIP registrados aún</p>
+              <p className="text-sm">Comienza añadiendo tu primer código VIP</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Descripción</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Usos</TableHead>
+                  <TableHead>Expiración</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {codigos.map((code) => (
+                  <TableRow key={code.id}>
+                    <TableCell className="font-medium">{code.codigo}</TableCell>
+                    <TableCell>{code.descripcion}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Switch 
+                          checked={code.activo} 
+                          onCheckedChange={() => toggleCodeStatus(code.id, code.activo)} 
+                        />
+                        <Badge variant={code.activo ? "default" : "secondary"}>
+                          {code.activo ? 'Activo' : 'Inactivo'}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span>{code.usos_actuales}</span>
+                        {code.usos_maximos && (
+                          <span className="text-xs text-muted-foreground">
+                            /{code.usos_maximos}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {code.fecha_expiracion ? (
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span>{new Date(code.fecha_expiracion).toLocaleDateString()}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Sin expiración</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => deleteCode(code.id)}>
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
         <CardFooter className="flex justify-between">
           <div className="flex items-center gap-4">
