@@ -101,7 +101,7 @@ const ReservaProductos: React.FC<ReservaProductosProps> = ({
             <div className="flex flex-col md:flex-row gap-4 items-center">
               <div className="w-full md:w-1/4">
                 <img 
-                  src={paqueteRecomendado.imagen} 
+                  src={paqueteRecomendado.imagen || '/placeholder.svg'} 
                   alt={paqueteRecomendado.nombre} 
                   className="w-full h-40 object-cover rounded-md"
                 />
@@ -109,7 +109,7 @@ const ReservaProductos: React.FC<ReservaProductosProps> = ({
               <div className="w-full md:w-3/4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                   <h3 className="font-semibold text-lg">{paqueteRecomendado.nombre}</h3>
-                  <p className="text-gray-400">{paqueteRecomendado.descripcion}</p>
+                  <p className="text-gray-400">{paqueteRecomendado.descripcion || 'Sin descripción'}</p>
                   <p className="text-amber-500 font-bold text-xl mt-2">${paqueteRecomendado.precio}</p>
                 </div>
                 <Button 

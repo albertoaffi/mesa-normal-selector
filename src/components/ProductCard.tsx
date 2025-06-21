@@ -7,8 +7,8 @@ export interface Producto {
   nombre: string;
   precio: number;
   categoria: string;
-  imagen: string;
-  descripcion: string;
+  imagen?: string;
+  descripcion?: string;
 }
 
 interface ProductCardProps {
@@ -24,7 +24,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ producto, cantidad, onChange 
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-gray-800/10">
       <div className="aspect-square overflow-hidden">
         <img 
-          src={imagen} 
+          src={imagen || '/placeholder.svg'} 
           alt={nombre} 
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
         />
@@ -35,7 +35,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ producto, cantidad, onChange 
           <span className="text-club-gold font-bold">${precio}</span>
         </div>
         <p className="text-xs text-gray-400 mt-1">{categoria}</p>
-        <p className="mt-2 text-sm text-gray-300 line-clamp-2">{descripcion}</p>
+        <p className="mt-2 text-sm text-gray-300 line-clamp-2">{descripcion || 'Sin descripción'}</p>
         
         <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
