@@ -128,14 +128,7 @@ const AdminTableMap: React.FC<AdminTableMapProps> = ({
           </div>}
 
         {/* Instructions */}
-        {tables.length > 0 && !selectedTable && <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-            <div className="text-sm font-medium mb-1">Instrucciones:</div>
-            <div className="text-xs text-gray-600 space-y-1">
-              <div>• Arrastra las mesas para posicionarlas</div>
-              <div>• Haz clic en una mesa para ver detalles</div>
-              <div>• Las posiciones se guardan automáticamente</div>
-            </div>
-          </div>}
+        {tables.length > 0 && !selectedTable}
       </div>
 
       {/* Table Statistics */}
